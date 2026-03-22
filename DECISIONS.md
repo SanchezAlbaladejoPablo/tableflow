@@ -180,3 +180,25 @@ Format: `## [YYYY-MM-DD] Decision title`
 - App startup must fetch settings before rendering anything.
 - `reservation-form.js` and `tables.js` must read settings instead of hardcoded values.
 - Existing seed data must be updated to create a settings record.
+
+---
+
+## [2026-03-22] Abandon Three.js in favor of Canvas 2D + sprites for the 2.5D floorplan
+
+**Context:** Phase 21 planificó un floorplan 3D isométrico usando Three.js/WebGL. Antes de comenzar la implementación se revisaron los trade-offs.
+
+**Decision:** Descartar Three.js y construir un motor 2.5D isométrico con **Canvas 2D API** y sprites dibujados por código (sin imágenes externas, sin librerías adicionales).
+
+**Reasons:**
+- Three.js añade ~600 KB de dependencia para un caso de uso que no necesita geometría 3D real.
+- WebGL no está disponible en todos los tablets de restaurante (algunos usan Android WebView antiguo).
+- Canvas 2D es suficiente para perspectiva isométrica 2.5D con sprites; menor superficie de bugs.
+- Los sprites "pixel art simplificado" dibujados con primitivos Canvas son más fáciles de mantener y extender que geometrías Three.js.
+- El sistema de personajes animados (Tom Nook) es mucho más sencillo de implementar con Canvas que con Three.js AnimationMixer.
+- La interfaz pública (`render`, `update`, `tableselect`, `tablemove`) no cambia — `app.js` no se toca.
+
+**Consequences:**
+- Phase 21 (Three.js) queda DEPRECATED — las tareas TASK-088 a TASK-121 no se implementarán.
+- Nueva Phase 22 con TASK-122 a TASK-157 (36 tareas) usando Canvas 2D.
+- No hay requisito de WebGL — el floorplan 2.5D funciona en cualquier navegador moderno.
+- El fallback al SVG 2D original sigue siendo posible si Canvas falla.

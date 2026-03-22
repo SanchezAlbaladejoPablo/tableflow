@@ -191,111 +191,222 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 ---
 
-## Phase 18 — AI Predictions (SaaS v2.0)
+## Phase 18 — AI Predictions (SaaS v2.0) — SKIP
+
+> Omitida por decisión de producto. No implementar de momento.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-075 | Add no-show probability score to reservation list (computed from customer history: no_show_count / total_reservations) | PENDING |
-| TASK-076 | Add n8n workflow: demand forecasting — predict next week's busy hours from historical data | PENDING |
-| TASK-077 | Add smart table suggestion in reservation form — recommend best table based on party size + availability | PENDING |
+| TASK-075 | Add no-show probability score to reservation list | SKIP |
+| TASK-076 | Add n8n workflow: demand forecasting | SKIP |
+| TASK-077 | Add smart table suggestion in reservation form | SKIP |
 
 ---
 
-## Phase 19 — Security Hardening (SaaS v2.0)
+## Phase 19 — Security Hardening (SaaS v2.0) — SKIP
+
+> Omitida por decisión de producto. No implementar de momento.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-078 | Add server-side 3-hour gap enforcement in PocketBase hook (`reservation-hooks.js`) | PENDING |
-| TASK-079 | Add server-side party_size vs table capacity validation in PocketBase hook | PENDING |
-| TASK-080 | Add nginx rate limiting config for reservation creation endpoint | PENDING |
-| TASK-081 | Document CORS configuration for production (restrict to known frontend origins) | PENDING |
-| TASK-082 | Security audit: review all PocketBase collection rules for cross-tenant leaks | PENDING |
+| TASK-078 | Add server-side 3-hour gap enforcement in PocketBase hook | SKIP |
+| TASK-079 | Add server-side party_size vs table capacity validation in PocketBase hook | SKIP |
+| TASK-080 | Add nginx rate limiting config for reservation creation endpoint | SKIP |
+| TASK-081 | Document CORS configuration for production | SKIP |
+| TASK-082 | Security audit: review all PocketBase collection rules for cross-tenant leaks | SKIP |
 
 ---
 
-## Phase 20 — Billing & Subscriptions (SaaS v2.0)
+## Phase 20 — Billing & Subscriptions (SaaS v2.0) — SKIP
+
+> Omitida por decisión de producto. No implementar de momento.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-083 | Add `subscription_plans` and `restaurant_subscriptions` collections | PENDING |
-| TASK-084 | Integrate Stripe Checkout for plan upgrades | PENDING |
-| TASK-085 | Add Stripe webhook handler (subscription created/updated/cancelled) | PENDING |
-| TASK-086 | Enforce plan limits in PocketBase hooks (max tables, max reservations/month) | PENDING |
-| TASK-087 | Add subscription status banner in dashboard (trial ending, plan expired) | PENDING |
+| TASK-083 | Add `subscription_plans` and `restaurant_subscriptions` collections | SKIP |
+| TASK-084 | Integrate Stripe Checkout for plan upgrades | SKIP |
+| TASK-085 | Add Stripe webhook handler (subscription created/updated/cancelled) | SKIP |
+| TASK-086 | Enforce plan limits in PocketBase hooks (max tables, max reservations/month) | SKIP |
+| TASK-087 | Add subscription status banner in dashboard (trial ending, plan expired) | SKIP |
 
 ---
 
-## Phase 21 — Floorplan 3D "Animal Crossing" (v2.0 Visual Overhaul)
+## Phase 21 — Floorplan 3D "Animal Crossing" (v2.0 Visual Overhaul) — DEPRECATED
 
-> Sustituye el SVG 2D por un floorplan 3D isométrico con estética caricaturesca cálida.
-> La lógica de negocio (reservas, estados de mesa, gap de 3h, etc.) NO cambia.
-> Tecnología elegida: **Three.js** (ver DECISIONS.md para el razonamiento).
+> **ARQUITECTURA ABANDONADA** (2026-03-22)
+> El enfoque Three.js/WebGL fue descartado en favor de un motor 2.5D Canvas+sprites.
+> Razones: menor complejidad, mejor rendimiento en tablets, mantenimiento más sencillo.
+> Ver Phase 22 para la nueva planificación.
 
-### Sub-fase A — Infraestructura y setup
-
-| ID | Task | Status |
-|---|---|---|
-| TASK-088 | Añadir Three.js como dependencia del frontend vía CDN ESM (`https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js`) — sin build step | PENDING |
-| TASK-089 | Crear `frontend/src/components/floor-plan-3d.js` — clase `FloorPlan3D` con la misma interfaz pública que `FloorPlan` (métodos `render(tables, statuses)` y `update(statuses)`) para ser un drop-in replacement | PENDING |
-| TASK-090 | Configurar escena Three.js: `WebGLRenderer`, `Scene`, cámara isométrica ortográfica (OrthographicCamera), luz ambiental + luz direccional suave con sombras desactivadas (rendimiento) | PENDING |
-| TASK-091 | Implementar resize handler: el renderer se adapta al contenedor sin distorsionar la perspectiva isométrica | PENDING |
-| TASK-092 | Añadir flag de feature en `APP_CONFIG` (`USE_3D_FLOOR_PLAN: true`) para poder alternar entre SVG 2D y 3D sin borrar código | PENDING |
-
-### Sub-fase B — Assets 3D (geometrías y materiales)
+### Sub-fase A — Infraestructura y setup (Three.js)
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-093 | Crear módulo `frontend/src/utils/floor-plan-assets.js` — funciones que devuelven `THREE.Group` para cada tipo de objeto | PENDING |
-| TASK-094 | Diseñar suelo (`createFloor`): plano con textura de baldosas cálidas (color crema/arena), bordes redondeados simulados con segmentos extra. Sin imagen externa — color flat `#F5E6C8` | PENDING |
-| TASK-095 | Diseñar mesa rectangular (`createRectTable`): cuerpo BoxGeometry redondeado (usando `RoundedBoxGeometry` de three-stdlib o aproximación con CylinderGeometry para las patas), mantel plano encima en color pastel (rojo vino, azul marino, verde oliva — rotación por número de mesa mod 3) | PENDING |
-| TASK-096 | Diseñar mesa redonda (`createRoundTable`): CylinderGeometry para el tablero, pata central, mantel circular (TorusGeometry plano o disco) | PENDING |
-| TASK-097 | Diseñar silla (`createChair`): cuerpo pequeño BoxGeometry + respaldo, colocadas alrededor de la mesa según `capacity` (2, 4, 6 sillas en posiciones predefinidas) | PENDING |
-| TASK-098 | Diseñar decoraciones de ambiente (`createDecoration`): maceta con planta (CylinderGeometry marrón + SphereGeometry verde), lámpara de techo (ConeGeometry), cuadro en la pared — objetos opcionales para rellenar el espacio vacío del restaurante | PENDING |
-| TASK-099 | Crear paleta de colores Animal Crossing en `frontend/src/utils/floor-plan-colors.js`: colores de suelo, mesas, sillas, decoraciones y los 3 estados (libre/pendiente/ocupada) con valores HEX fijos y función `getStatusColor(status)` | PENDING |
+| TASK-088 | Añadir Three.js como dependencia del frontend vía CDN ESM | DEPRECATED |
+| TASK-089 | Crear `floor-plan-3d.js` — clase `FloorPlan3D` con Three.js | DEPRECATED |
+| TASK-090 | Configurar escena Three.js: WebGLRenderer, OrthographicCamera, luces | DEPRECATED |
+| TASK-091 | Implementar resize handler para renderer Three.js | DEPRECATED |
+| TASK-092 | Flag `USE_3D_FLOOR_PLAN` en `APP_CONFIG` | DEPRECATED |
 
-### Sub-fase C — Estados y animaciones
+### Sub-fase B — Assets 3D (Three.js)
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-100 | Implementar sistema de estado visual: cada mesa tiene un `indicador` (pequeño cilindro o esfera encima) que cambia de color según el estado — verde `#4ADE80`, amarillo `#FCD34D`, rojo `#F87171` | PENDING |
-| TASK-101 | Implementar animación de transición de estado: cuando `update(statuses)` cambia el color del indicador, interpolar suavemente con GSAP (CDN ESM) o con un loop `requestAnimationFrame` manual (preferir sin deps extra) | PENDING |
-| TASK-102 | Implementar hover highlight: al pasar el ratón sobre una mesa, elevarla ligeramente (translateY +2 unidades) y aclarar el color del mantel — efecto de "levitar" suave | PENDING |
-| TASK-103 | Implementar efecto de pulso en mesas con estado `seated` (rojo): el indicador hace un pulso de escala (1.0 → 1.3 → 1.0) cada 2 segundos para llamar la atención del staff | PENDING |
+| TASK-093 | Módulo `floor-plan-assets.js` con THREE.Group | DEPRECATED |
+| TASK-094 | Suelo con BoxGeometry/PlaneGeometry | DEPRECATED |
+| TASK-095 | Mesa rectangular con BoxGeometry | DEPRECATED |
+| TASK-096 | Mesa redonda con CylinderGeometry | DEPRECATED |
+| TASK-097 | Sillas con BoxGeometry | DEPRECATED |
+| TASK-098 | Decoraciones 3D (plantas, lámparas) | DEPRECATED |
+| TASK-099 | Paleta de colores para Three.js | DEPRECATED |
+
+### Sub-fase C — Estados y animaciones (Three.js)
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-100 | Indicadores de estado (cilindros Three.js) | DEPRECATED |
+| TASK-101 | Animación de transición con requestAnimationFrame | DEPRECATED |
+| TASK-102 | Hover highlight con translateY | DEPRECATED |
+| TASK-103 | Pulso en mesas `seated` | DEPRECATED |
+
+### Sub-fase D — Interactividad (Three.js)
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-104 | Raycasting para detección de click | DEPRECATED |
+| TASK-105 | Raycasting para hover | DEPRECATED |
+| TASK-106 | Drag-and-drop 3D con proyección al plano XZ | DEPRECATED |
+| TASK-107 | Tooltip flotante HTML | DEPRECATED |
+
+### Sub-fase E — Integración (Three.js)
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-108 | Integración `FloorPlan3D` en `app.js` | DEPRECATED |
+| TASK-109 | Verificar `refreshFloorPlan()` con Three.js | DEPRECATED |
+| TASK-110 | Verificar evento `tableselect` | DEPRECATED |
+| TASK-111 | Verificar evento `tablemove` | DEPRECATED |
+| TASK-112 | Soporte multi-área en escena 3D | DEPRECATED |
+
+### Sub-fase F — Rendimiento (Three.js)
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-113 | Optimizar geometrías con BufferGeometry | DEPRECATED |
+| TASK-114 | Frustum culling | DEPRECATED |
+| TASK-115 | Limitar render loop Three.js | DEPRECATED |
+| TASK-116 | Fallback SVG si WebGL no disponible | DEPRECATED |
+| TASK-117 | Tests para FloorPlan3D | DEPRECATED |
+
+### Sub-fase G — Documentación (Three.js)
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-118 | Actualizar leyenda del floorplan | DEPRECATED |
+| TASK-119 | Control de zoom/pan | DEPRECATED |
+| TASK-120 | Crear `docs/FLOORPLAN_3D.md` | DEPRECATED |
+| TASK-121 | Actualizar `docs/SETUP.md` para Three.js | DEPRECATED |
+
+---
+
+## Phase 22 — Floorplan 2.5D Isometric Engine (v2.0 Visual Overhaul)
+
+> Sustituye el SVG 2D por un **motor isométrico 2.5D basado en Canvas + sprites**.
+> Tecnología: **Canvas 2D API** — sin librerías externas, sin WebGL.
+> La interfaz pública (`render`, `update`, `tableselect`, `tablemove`) no cambia.
+> `app.js` no necesita modificaciones — `FloorPlan2_5D` es un drop-in replacement.
+>
+> **Decisión de arquitectura (2026-03-22):** Three.js descartado.
+> Razones: menor complejidad, mejor rendimiento en tablets de restaurante,
+> estética más coherente con sprites 2D, animaciones de personajes más sencillas.
+
+---
+
+### Sub-fase A — Motor 2.5D
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-122 | Crear `frontend/src/components/floor-plan-2_5d.js` — clase `FloorPlan2_5D` con interfaz idéntica a `FloorPlan`: `render(tables, statuses)`, `update(statuses)`, `destroy()` | PENDING |
+| TASK-123 | Crear `<canvas>` y contexto 2D dentro del contenedor; implementar resize handler que escale el canvas sin distorsionar la perspectiva isométrica | PENDING |
+| TASK-124 | Implementar sistema de coordenadas isométricas: funciones `worldToScreen(x, y)` y `screenToWorld(sx, sy)` para convertir entre coordenadas del modelo (pos_x, pos_y de las mesas) y píxeles en canvas | PENDING |
+| TASK-125 | Implementar loop de render con `requestAnimationFrame`; render dirty-flag para no redibujar si no hay cambios | PENDING |
+| TASK-126 | Implementar sistema de capas de render: 1) suelo, 2) decoraciones traseras, 3) mesas+sillas, 4) personajes, 5) indicadores de estado, 6) UI overlay | PENDING |
+| TASK-127 | Añadir flag `USE_2_5D_FLOOR_PLAN: false` en `APP_CONFIG` de `index.html` y lógica en `app.js` para instanciar `FloorPlan2_5D` cuando está activo | PENDING |
+
+---
+
+### Sub-fase B — Sistema de sprites
+
+> Todos los sprites se dibujan con Canvas 2D API (formas primitivas + colores).
+> No se usan imágenes externas — el estilo "pixel art simplificado" se genera por código.
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-128 | Crear `frontend/src/utils/iso-sprites.js` — módulo central con función `drawSprite(ctx, type, x, y, options)` que despacha al dibujante correcto según `type` | PENDING |
+| TASK-129 | Sprite `table-rect`: mesa rectangular isométrica dibujada con paths — tablero, laterales, patas; acepta `color` (pastel) y `capacity` | PENDING |
+| TASK-130 | Sprite `table-round`: mesa redonda isométrica — elipse para el tablero, cilindro simplificado lateral | PENDING |
+| TASK-131 | Sprite `chair`: silla isométrica pequeña — asiento cuadrado + respaldo; se colocan N sillas alrededor de la mesa según `capacity` (posiciones predefinidas para 2, 4, 6 personas) | PENDING |
+| TASK-132 | Sprite `plant`: maceta isométrica — cuerpo cilíndrico marrón + esfera verde encima; decoración de ambiente | PENDING |
+| TASK-133 | Sprite `door`: puerta de entrada al restaurante — arco isométrico con marco; punto de spawn para personajes | PENDING |
+| TASK-134 | Sprite `floor-tile`: baldosa isométrica individual en color crema `#F5E6C8` con borde sutil; el suelo se construye como una rejilla de tiles | PENDING |
+| TASK-135 | Crear `frontend/src/utils/iso-palette.js` — constantes de color para cada tipo de sprite y función `getStatusColor(status)` → `{ free: '#4ADE80', pending: '#FCD34D', reserved: '#60A5FA', seated: '#F87171' }` | PENDING |
+
+---
+
+### Sub-fase C — Estados visuales
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-136 | Dibujar indicador de estado sobre cada mesa: rombo isométrico pequeño en el color del estado actual (usa `getStatusColor`) | PENDING |
+| TASK-137 | Animación de cambio de estado: interpolar el color del indicador durante 400ms usando `requestAnimationFrame` y lerp de componentes RGB | PENDING |
+| TASK-138 | Hover highlight: cuando el cursor está sobre una mesa, dibujarla con brillo aumentado (mezcla con blanco al 20%) y offset vertical de -4px | PENDING |
+| TASK-139 | Efecto pulso en mesas con estado `seated`: el indicador escala entre 1.0 y 1.3 con una sinusoide de periodo 2s — llama la atención del staff | PENDING |
+
+---
 
 ### Sub-fase D — Interactividad
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-104 | Implementar raycasting para detección de click en mesas: `THREE.Raycaster` + listener `click` en el canvas → despachar evento `CustomEvent("tableselect", { detail: { table } })` igual que en el SVG actual | PENDING |
-| TASK-105 | Implementar raycasting para hover: listener `pointermove` → cambiar cursor a `pointer` al pasar sobre una mesa, restaurar a `default` al salir | PENDING |
-| TASK-106 | Implementar drag-and-drop 3D en modo edición: `pointerdown` + `pointermove` + `pointerup` con proyección de coordenadas 3D al plano XZ del suelo → actualizar posición de la mesa y despachar `CustomEvent("tablemove", { detail: { tableId, x, y } })` | PENDING |
-| TASK-107 | Añadir tooltip flotante HTML (no Three.js) al hacer hover sobre una mesa: nombre de mesa, capacidad, estado — posicionado via `getBoundingClientRect` del canvas + coordenadas proyectadas | PENDING |
+| TASK-140 | Detección de click en mesa: hit-test AABB isométrico sobre el área de cada mesa; despachar `CustomEvent("tableselect", { detail: { table } })` — misma interfaz que SVG | PENDING |
+| TASK-141 | Hover: listener `pointermove` en canvas → detectar mesa bajo cursor → cambiar `cursor` a `pointer`, activar highlight, limpiar al salir | PENDING |
+| TASK-142 | Tooltip flotante HTML: al hacer hover, mostrar `<div>` superpuesto al canvas con nombre de mesa, capacidad y estado; posicionado con `worldToScreen` + `getBoundingClientRect` | PENDING |
+| TASK-143 | Drag-and-drop en modo edición: `pointerdown` + `pointermove` + `pointerup`; convertir coordenadas de pantalla a mundo con `screenToWorld`; despachar `CustomEvent("tablemove", { detail: { tableId, x, y } })` | PENDING |
 
-### Sub-fase E — Integración con lógica existente
+---
 
-| ID | Task | Status |
-|---|---|---|
-| TASK-108 | Modificar `app.js`: si `APP_CONFIG.USE_3D_FLOOR_PLAN`, instanciar `FloorPlan3D` en lugar de `FloorPlan` — el resto del código de `app.js` no cambia (misma interfaz) | PENDING |
-| TASK-109 | Verificar que `refreshFloorPlan()` sigue funcionando: `getFloorPlanStatus()` devuelve los mismos datos, `FloorPlan3D.update()` los consume correctamente | PENDING |
-| TASK-110 | Verificar que el evento `tableselect` abre el modal de detalle de mesa igual que en 2D | PENDING |
-| TASK-111 | Verificar que el evento `tablemove` guarda la posición correctamente en PocketBase | PENDING |
-| TASK-112 | Añadir soporte multi-área en la escena 3D: zonas `indoor`, `terraza` y `barra` separadas por divisores visuales (bajo muro o cambio de textura de suelo), con label flotante de área en HTML superpuesto al canvas | PENDING |
+### Sub-fase E — Sistema de personajes (Tom Nook)
 
-### Sub-fase F — Rendimiento y calidad
+> Feature puramente visual. No afecta la lógica de reservas ni PocketBase.
+> Un "personaje" representa a un grupo de comensales que tiene reserva próxima.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-113 | Optimizar geometrías: usar `BufferGeometry` siempre, compartir materiales entre mesas del mismo tipo (`MeshLambertMaterial` compartido por color — no crear uno por instancia) | PENDING |
-| TASK-114 | Implementar frustum culling automático (Three.js lo hace por defecto) y verificar que mesas fuera de pantalla no impactan el render | PENDING |
-| TASK-115 | Limitar el render loop: usar `renderer.setAnimationLoop(null)` cuando no hay animaciones activas; activar el loop solo durante transiciones de estado o hover | PENDING |
-| TASK-116 | Añadir fallback: si WebGL no está disponible (contexto perdido o dispositivo antiguo), mostrar el floorplan SVG 2D automáticamente | PENDING |
-| TASK-117 | Escribir tests para `FloorPlan3D`: mock de Three.js, verificar que `render()` crea los objetos correctos, `update()` cambia colores, `tableselect` se despacha | PENDING |
+| TASK-144 | Crear `frontend/src/utils/characters.js` — gestor de personajes activos: `spawnCharacter(tableId)`, `removeCharacter(tableId)`, `updateCharacters(dt)` | PENDING |
+| TASK-145 | Crear sprite `tom-nook` en `iso-sprites.js`: figura isométrica estilizada (cabeza circular, cuerpo rectangular, colores cálidos) — dibujada con Canvas 2D primitivos | PENDING |
+| TASK-146 | Animación de caminar: el personaje sigue un path desde la puerta (`door` sprite) hasta la mesa asignada; velocidad constante, interpolación lineal por segmentos | PENDING |
+| TASK-147 | Animación de sentarse: al llegar a la mesa, el personaje hace una animación de "encogerse" (scale 1.0 → 0.7) y queda visible junto a la mesa durante la reserva | PENDING |
+| TASK-148 | Lógica de spawn: en cada ciclo de `update(statuses)`, para cada mesa con estado `reserved` cuya reserva empiece en ≤ 30 minutos, llamar `spawnCharacter(tableId)` si no existe ya; llamar `removeCharacter(tableId)` cuando el estado cambie a `completed` o `cancelled` | PENDING |
+| TASK-149 | Integrar `updateCharacters(deltaTime)` en el loop de render principal de `FloorPlan2_5D`; los personajes se renderizan en la capa 4 (entre mesas e indicadores) | PENDING |
 
-### Sub-fase G — UX y documentación visual
+---
+
+### Sub-fase F — Performance
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-118 | Actualizar la leyenda del floorplan en `index.html`: reemplazar los `legend-dot` 2D por pequeñas esferas SVG inline con los colores del sistema 3D | PENDING |
-| TASK-119 | Añadir control de zoom/pan: rueda del ratón para zoom (escalar cámara ortográfica) y arrastrar con botón central para paneo — solo en modo vista, no edición | PENDING |
-| TASK-120 | Crear `docs/FLOORPLAN_3D.md` — documentación técnica completa: arquitectura de la escena, catálogo de assets, paleta de colores, decisiones de diseño, guía de extensión para añadir nuevos objetos | PENDING |
-| TASK-121 | Actualizar `docs/SETUP.md` con instrucciones para el floorplan 3D: requisito de WebGL, nota sobre Three.js CDN, cómo alternar entre 2D y 3D | PENDING |
+| TASK-150 | Dirty-flag render: solo llamar a la función de redibujado completo cuando cambia el estado (`update`), entra/sale hover, o hay animaciones activas; usar `cancelAnimationFrame` cuando el canvas no está visible | PENDING |
+| TASK-151 | Sprite caching: pre-renderizar cada tipo de sprite en un `OffscreenCanvas` auxiliar y hacer `drawImage` en el canvas principal — evita recalcular paths en cada frame | PENDING |
+| TASK-152 | Fallback SVG: si `FloorPlan2_5D` falla al inicializarse (canvas no disponible), instanciar `FloorPlan` (SVG) automáticamente; registrar el error en consola | PENDING |
+| TASK-153 | Escribir tests para `FloorPlan2_5D`: mock de `CanvasRenderingContext2D`, verificar que `render()` llama a `drawSprite` para cada mesa, `update()` actualiza colores, `tableselect` se despacha al hacer click | PENDING |
+
+---
+
+### Sub-fase G — Documentación
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-154 | Crear `docs/FLOORPLAN_2_5D.md`: arquitectura del motor Canvas 2D, sistema de coordenadas isométricas, catálogo de sprites, sistema de personajes, paleta de colores, guía de extensión | PENDING |
+| TASK-155 | Actualizar `docs/SETUP.md`: eliminar referencias a WebGL/Three.js; añadir nota sobre Canvas 2D y el flag `USE_2_5D_FLOOR_PLAN` | PENDING |
+| TASK-156 | Actualizar `docs/ARCHITECTURE.md`: reflejar el cambio de Three.js a Canvas 2D en la sección de frontend | PENDING |
+| TASK-157 | Registrar la decisión en `DECISIONS.md`: motivo del abandono de Three.js, ventajas del motor Canvas 2D, trade-offs aceptados | PENDING |
