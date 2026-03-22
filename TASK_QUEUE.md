@@ -170,12 +170,12 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-064 | Add "Analytics" tab to the dashboard (4th tab) | PENDING |
-| TASK-065 | Implement occupancy rate chart (reservations/capacity by day for last 30 days) | PENDING |
-| TASK-066 | Implement no-show rate tracker (no_show count / total reservations) | PENDING |
-| TASK-067 | Implement peak hours heatmap (reservations by hour of day, day of week) | PENDING |
-| TASK-068 | Implement customer retention metrics (new vs returning guests by month) | PENDING |
-| TASK-069 | Add CSV export for reservations and analytics data | PENDING |
+| TASK-064 | Add "Analytics" tab to the dashboard (4th tab) | DONE |
+| TASK-065 | Implement occupancy rate chart (reservations/capacity by day for last 30 days) | DONE |
+| TASK-066 | Implement no-show rate tracker (no_show count / total reservations) | DONE |
+| TASK-067 | Implement peak hours heatmap (reservations by hour of day, day of week) | DONE |
+| TASK-068 | Implement customer retention metrics (new vs returning guests by month) | DONE |
+| TASK-069 | Add CSV export for reservations and analytics data | DONE |
 
 ---
 

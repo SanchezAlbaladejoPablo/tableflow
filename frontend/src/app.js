@@ -30,6 +30,7 @@ import { LoginPage }            from "./pages/login.js";
 import { RegisterPage }         from "./pages/register.js";
 import { OnboardingWizard }     from "./pages/onboarding.js";
 import { initRealtime, destroyRealtime, subscribe, onStatusChange } from "./services/realtime.js";
+import { Analytics } from "./components/analytics.js";
 
 // ---------------------------------------------------------------------------
 // Application state
@@ -55,6 +56,9 @@ let reservationList;
 
 /** @type {CustomerForm} */
 let customerForm;
+
+/** @type {Analytics|null} */
+let analyticsComponent = null;
 
 // ---------------------------------------------------------------------------
 // Initialisation
@@ -220,6 +224,7 @@ async function init() {
     setupFloorPlanTab();
     setupReservationsTab();
     setupCustomersTab();
+    setupAnalyticsTab();
     setupReservationModal();
     setupCustomerModal();
     setupTableModal();
@@ -260,6 +265,7 @@ function switchTab(tabId) {
     // Lazy-load tab content
     if (tabId === "reservations") loadReservations();
     if (tabId === "customers")    loadCustomers();
+    if (tabId === "analytics")    loadAnalytics();
 }
 
 // ---------------------------------------------------------------------------
@@ -483,6 +489,24 @@ function loadReservations() {
         date:   dateInput?.value || undefined,
         status: document.getElementById("filter-status")?.value || undefined,
     });
+}
+
+// ---------------------------------------------------------------------------
+// Analytics tab — Phase 16
+// ---------------------------------------------------------------------------
+
+function setupAnalyticsTab() {
+    // Nothing to set up at init time — loadAnalytics is called lazily on tab switch.
+}
+
+function loadAnalytics() {
+    const container = document.getElementById("analytics-container");
+    if (!container) return;
+
+    // Destroy previous instance (e.g. if restaurant changed)
+    analyticsComponent?.destroy();
+    analyticsComponent = new Analytics(restaurantId);
+    analyticsComponent.render(container);
 }
 
 // ---------------------------------------------------------------------------

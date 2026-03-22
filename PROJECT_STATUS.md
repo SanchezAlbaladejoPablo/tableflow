@@ -25,7 +25,7 @@ _Last updated: 2026-03-22_
 | Phase 13 — Restaurant Onboarding (SaaS) | COMPLETE |
 | Phase 14 — Editable Floor Plan (SaaS) | COMPLETE |
 | Phase 15 — Real-time SSE (SaaS) | COMPLETE |
-| Phase 16 — Analytics Dashboard (SaaS) | PENDING |
+| Phase 16 — Analytics Dashboard (SaaS) | COMPLETE |
 | Phase 17 — Public Booking Widget (SaaS) | PENDING |
 | Phase 18 — AI Predictions (SaaS) | PENDING |
 | Phase 19 — Security Hardening (SaaS) | PENDING |
