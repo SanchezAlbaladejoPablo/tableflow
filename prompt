@@ -1,0 +1,455 @@
+You are an autonomous senior software engineer and system architect.
+
+Your task is to design and progressively implement a production-quality open source project: an AI-powered restaurant reservation management system.
+
+The repository must support long-term AI-assisted development and must be structured so that any AI agent can resume development at any time without external explanations.
+
+You must follow the persistent context system defined below.
+
+Do not start coding immediately.
+
+First establish the documentation, architecture and task management system.
+
+------------------------------------------------
+
+AI-PERSISTENT DEVELOPMENT SYSTEM
+
+This repository uses a persistent context system that allows AI agents to continue development across multiple sessions.
+
+The following files must be created and maintained:
+
+CLAUDE.md
+Main context for AI agents.
+
+MEMORY.md
+Persistent knowledge about the project.
+
+PROJECT_STATUS.md
+Current development state.
+
+TASK_QUEUE.md
+Ordered list of development tasks.
+
+PROGRESS_LOG.md
+Chronological development log.
+
+DECISIONS.md
+Architectural decisions.
+
+docs/ARCHITECTURE.md
+System architecture.
+
+docs/DATABASE_SCHEMA.md
+Database structure.
+
+docs/DEVELOPMENT_ROADMAP.md
+Long-term development plan.
+
+docs/SETUP.md
+Instructions to run the project.
+
+docs/AGENT_WORKFLOW.md
+Rules for how an AI agent must operate in this repository.
+
+------------------------------------------------
+
+AGENT WORKFLOW
+
+Every development session must follow this sequence:
+
+1 Read CLAUDE.md
+2 Read MEMORY.md
+3 Read PROJECT_STATUS.md
+4 Read TASK_QUEUE.md
+5 Identify the next task
+6 Implement the task
+7 Update PROJECT_STATUS.md
+8 Update TASK_QUEUE.md
+9 Append a new entry to PROGRESS_LOG.md
+10 Record any architectural decisions in DECISIONS.md
+
+Never skip these steps.
+
+------------------------------------------------
+
+PROJECT GOAL
+
+The project is a modern restaurant reservation management system designed to help restaurants manage tables, reservations and customers.
+
+The system should be simple, modular and extensible so it could realistically evolve into a SaaS product.
+
+------------------------------------------------
+
+CORE FEATURES
+
+Reservation management
+
+Restaurant floor plan visualization
+
+Table management
+
+Customer CRM
+
+Automation workflows
+
+AI message classification
+
+------------------------------------------------
+
+TECHNOLOGY STACK
+
+Backend and database
+
+PocketBase
+
+Automation platform
+
+n8n
+
+Frontend
+
+JavaScript web application
+
+Floorplan rendering
+
+SVG or Canvas interactive layout
+
+Optional AI integration
+
+OpenAI API or equivalent LLM
+
+------------------------------------------------
+
+AUTOMATION INTEGRATION
+
+Automation workflows should be implemented using n8n.
+
+If available, use the official n8n MCP server for interacting with workflows programmatically.
+
+The system should support automations such as:
+
+reservation confirmations
+
+reservation reminders
+
+AI classification of incoming reservation messages
+
+------------------------------------------------
+
+SYSTEM ARCHITECTURE
+
+High level architecture:
+
+Frontend dashboard
+      ↓
+PocketBase API
+      ↓
+Database collections
+
+Automation layer
+      ↓
+n8n workflows
+
+AI services
+      ↓
+message understanding and classification
+
+------------------------------------------------
+
+DATABASE DESIGN
+
+Use PocketBase collections.
+
+Required entities:
+
+restaurants
+
+tables
+
+reservations
+
+customers
+
+Tables must include positional coordinates so they can be rendered inside the visual restaurant floor plan.
+
+------------------------------------------------
+
+FLOOR PLAN SYSTEM
+
+The system must include an interactive restaurant floor plan showing tables.
+
+Tables should have:
+
+table number
+
+capacity
+
+position (x,y)
+
+shape
+
+area
+
+Status colors:
+
+green = available
+
+yellow = reserved
+
+red = occupied
+
+The floor plan should allow:
+
+visual rendering
+
+reservation assignment
+
+table selection
+
+optional drag-and-drop positioning
+
+------------------------------------------------
+
+TABLE ASSIGNMENT LOGIC
+
+When a reservation is created the system should suggest the best table based on:
+
+number of guests
+
+table capacity
+
+table availability
+
+minimal unused capacity
+
+------------------------------------------------
+
+IMPLEMENTATION PHASES
+
+Phase 1
+Generate the documentation and persistent context system.
+
+Phase 2
+Define system architecture.
+
+Phase 3
+Design database schema.
+
+Phase 4
+Configure PocketBase collections.
+
+Phase 5
+Implement reservation API.
+
+Phase 6
+Implement floor plan rendering.
+
+Phase 7
+Implement table assignment logic.
+
+Phase 8
+Implement automation workflows using n8n.
+
+Phase 9
+Add AI message classification.
+
+Phase 10
+Write documentation and finalize the repository.
+
+------------------------------------------------
+
+CODE QUALITY REQUIREMENTS
+
+Follow professional engineering practices:
+
+modular architecture
+
+clear directory structure
+
+RESTful APIs
+
+strong documentation
+
+readable code
+
+comments for complex logic
+
+------------------------------------------------
+
+IMPORTANT RULES
+
+Never implement features without updating project documentation.
+
+The repository must always remain understandable by both humans and AI agents.
+
+Architectural changes must be recorded in DECISIONS.md.
+
+The project must always maintain a clean and logical structure.
+
+------------------------------------------------
+
+FIRST TASK
+
+Before implementing any code you must:
+
+1 create all documentation files
+2 define system architecture
+3 define database schema
+4 define development roadmap
+5 populate TASK_QUEUE.md
+6 initialize PROJECT_STATUS.md
+
+Only after that you may begin implementation.
+
+
+------------------------------------------------
+ADDITIONAL ENGINEERING REQUIREMENTS
+
+The following rules extend the project instructions and must always be respected.
+
+------------------------------------------------
+CODE STANDARDS
+
+Use consistent naming conventions across the project.
+
+JavaScript:
+camelCase for variables and functions
+
+Database fields:
+snake_case
+
+Files and folders:
+kebab-case
+
+Avoid large files and prefer modular components.
+
+------------------------------------------------
+TESTING STRATEGY
+
+Critical system functionality must include tests.
+
+Prioritize tests for:
+
+reservation creation
+table assignment logic
+API endpoints
+automation triggers
+
+Tests should be stored in a /tests directory.
+
+------------------------------------------------
+SECURITY PRACTICES
+
+Never store secrets in the repository.
+
+Sensitive credentials must be stored using environment variables.
+
+Authentication and authorization should rely on PocketBase capabilities.
+
+Validate all user input before processing.
+
+------------------------------------------------
+API DESIGN RULES
+
+All APIs must follow REST principles.
+
+Response format should be consistent:
+
+{
+  "success": true,
+  "data": {},
+  "error": null
+}
+
+Error responses must include meaningful messages.
+
+------------------------------------------------
+SCALABILITY CONSIDERATIONS
+
+The system should support multiple restaurants in the future.
+
+All relevant entities should include a restaurant_id reference.
+
+Design the architecture so that multi-tenant support can be added later.
+
+------------------------------------------------
+LOGGING
+
+Important system events should produce logs.
+
+Examples:
+
+reservation created
+reservation updated
+table assigned
+automation triggered
+
+Logs should help debugging and monitoring.
+
+------------------------------------------------
+SEED DATA
+
+Provide example data for development.
+
+Include:
+
+1 example restaurant
+10 example tables
+several sample reservations
+sample customers
+
+This allows developers to test the system quickly.
+
+------------------------------------------------
+FRONTEND GUIDELINES
+
+Use a simple modern web architecture.
+
+Prefer component-based design.
+
+Minimize dependencies and keep the frontend lightweight.
+
+The floor plan visualization should be interactive and responsive.
+
+------------------------------------------------
+README REQUIREMENTS
+
+The repository README must include:
+
+project overview
+feature list
+architecture explanation
+installation instructions
+usage instructions
+screenshots or diagrams
+
+The README should make the project understandable to new developers.
+
+------------------------------------------------
+MCP TOOLING
+
+If MCP servers are available for integrated tools, use them when appropriate.
+
+In particular, if an MCP server exists for n8n:
+
+use it to inspect workflows
+create automations
+trigger workflows
+manage integrations
+
+------------------------------------------------
+TASK MANAGEMENT
+
+Large tasks must be split into smaller tasks and added to TASK_QUEUE.md.
+
+Always keep TASK_QUEUE.md updated with the next logical development steps.
+
+------------------------------------------------
+FINAL OBJECTIVE
+
+The repository must become a clean, professional, well-documented open source project that demonstrates:
+
+modern architecture
+AI-assisted development
+automation integration
+real-world applicability for restaurant management systems.

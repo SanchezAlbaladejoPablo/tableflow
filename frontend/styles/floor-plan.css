@@ -1,0 +1,142 @@
+/**
+ * floor-plan.css
+ *
+ * Styles for the SVG floor plan component.
+ * Status colors are defined here AND as constants in floor-plan.js.
+ * If you change a color here, update the STATUS_COLOR map in floor-plan.js too.
+ */
+
+/* ---------------------------------------------------------------------------
+   Status color tokens
+   --------------------------------------------------------------------------- */
+
+:root {
+    --color-available: #22c55e;
+    --color-reserved:  #eab308;
+    --color-occupied:  #ef4444;
+    --color-available-hover: #16a34a;
+    --color-reserved-hover:  #ca8a04;
+    --color-occupied-hover:  #dc2626;
+}
+
+/* ---------------------------------------------------------------------------
+   SVG container
+   --------------------------------------------------------------------------- */
+
+.floor-plan {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+   Background and structure
+   --------------------------------------------------------------------------- */
+
+.floor-plan__background {
+    fill: #f1f5f9;
+}
+
+.floor-plan__divider {
+    stroke: #cbd5e1;
+    stroke-width: 1.5;
+    stroke-dasharray: 6 4;
+}
+
+.floor-plan__area-label {
+    fill: #94a3b8;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    dominant-baseline: middle;
+}
+
+/* ---------------------------------------------------------------------------
+   Tables
+   --------------------------------------------------------------------------- */
+
+.floor-plan__table {
+    cursor: pointer;
+    outline: none;
+}
+
+.floor-plan__table-shape {
+    stroke: rgba(0, 0, 0, 0.15);
+    stroke-width: 1.5;
+    transition: fill 0.2s ease, filter 0.15s ease;
+}
+
+/* Hover: darken via filter */
+.floor-plan__table:hover .floor-plan__table-shape,
+.floor-plan__table:focus-visible .floor-plan__table-shape {
+    filter: brightness(0.88);
+}
+
+/* Focus ring for keyboard navigation */
+.floor-plan__table:focus-visible .floor-plan__table-shape {
+    outline: none;
+    stroke: #3b82f6;
+    stroke-width: 3;
+}
+
+/* Highlighted (table is selected in an open form) */
+.floor-plan__table--highlighted .floor-plan__table-shape {
+    stroke: #1d4ed8;
+    stroke-width: 3;
+    filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.6));
+}
+
+/* Dragging */
+.floor-plan__table--dragging {
+    opacity: 0.85;
+    cursor: grabbing !important;
+}
+
+.floor-plan__table--dragging .floor-plan__table-shape {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+    stroke: rgba(0, 0, 0, 0.3);
+    stroke-width: 2;
+}
+
+/* Status-specific legend swatches */
+.floor-plan__legend-swatch--available { fill: var(--color-available); }
+.floor-plan__legend-swatch--reserved  { fill: var(--color-reserved); }
+.floor-plan__legend-swatch--occupied  { fill: var(--color-occupied); }
+
+/* ---------------------------------------------------------------------------
+   Table labels
+   --------------------------------------------------------------------------- */
+
+.floor-plan__table-number {
+    fill: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    dominant-baseline: middle;
+    user-select: none;
+}
+
+.floor-plan__table-capacity {
+    fill: rgba(255, 255, 255, 0.85);
+    font-size: 11px;
+    font-family: inherit;
+    dominant-baseline: middle;
+    user-select: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Legend
+   --------------------------------------------------------------------------- */
+
+.floor-plan__legend-label {
+    fill: #64748b;
+    font-size: 12px;
+    font-family: inherit;
+    dominant-baseline: middle;
+}

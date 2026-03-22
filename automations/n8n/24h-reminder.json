@@ -1,0 +1,159 @@
+{
+  "name": "TableFlow — 24h Reservation Reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "n8n-node-cron",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.POCKETBASE_URL }}/api/collections/reservations/records",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filter",
+              "value": "status = \"confirmed\" && reserved_at >= \"{{ $now.plus(23, 'hours').toISO() }}\" && reserved_at <= \"{{ $now.plus(25, 'hours').toISO() }}\""
+            },
+            {
+              "name": "perPage",
+              "value": "100"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n8n-node-fetch",
+      "name": "Fetch Upcoming Reservations",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "items",
+        "options": {}
+      },
+      "id": "n8n-node-split",
+      "name": "Split Into Individual Reservations",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.guest_email }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "n8n-node-has-email",
+      "name": "Has Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_USER }}",
+        "toEmail": "={{ $json.guest_email }}",
+        "subject": "Reminder: Your reservation tomorrow",
+        "emailType": "html",
+        "message": "=<h2>Reminder: Your reservation is tomorrow!</h2><p>Dear <strong>{{ $json.guest_name }}</strong>,</p><p>This is a friendly reminder about your reservation:</p><ul><li><strong>Date/Time:</strong> {{ new Date($json.reserved_at).toLocaleString() }}</li><li><strong>Party size:</strong> {{ $json.party_size }} guests</li>{{ $json.notes ? '<li><strong>Notes:</strong> ' + $json.notes + '</li>' : '' }}</ul><p>If you need to cancel, please contact us as soon as possible.</p><p>We look forward to seeing you!</p>",
+        "options": {}
+      },
+      "id": "n8n-node-email",
+      "name": "Send Reminder Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [1120, 220],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credentials",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.POCKETBASE_URL }}/api/collections/reservation_logs/records",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "reservation_id",  "value": "={{ $('Split Into Individual Reservations').item.json.id }}" },
+            { "name": "restaurant_id",   "value": "={{ $('Split Into Individual Reservations').item.json.restaurant_id }}" },
+            { "name": "event",           "value": "reminder_sent" },
+            { "name": "details",         "value": "={{ JSON.stringify({ channel: 'email', to: $('Split Into Individual Reservations').item.json.guest_email }) }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n8n-node-log",
+      "name": "Log Reminder Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 220]
+    }
+  ],
+  "connections": {
+    "Every Hour": {
+      "main": [
+        [{ "node": "Fetch Upcoming Reservations", "type": "main", "index": 0 }]
+      ]
+    },
+    "Fetch Upcoming Reservations": {
+      "main": [
+        [{ "node": "Split Into Individual Reservations", "type": "main", "index": 0 }]
+      ]
+    },
+    "Split Into Individual Reservations": {
+      "main": [
+        [{ "node": "Has Email?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has Email?": {
+      "main": [
+        [{ "node": "Send Reminder Email", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Send Reminder Email": {
+      "main": [
+        [{ "node": "Log Reminder Sent", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "notes": "Runs every hour. Queries PocketBase for confirmed reservations in the 23–25h window. Sends a reminder email to each guest with an email address. Logs the event in reservation_logs."
+  }
+}

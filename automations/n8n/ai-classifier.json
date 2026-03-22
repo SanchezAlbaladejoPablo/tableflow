@@ -1,0 +1,108 @@
+{
+  "name": "TableFlow — AI Message Classifier",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-classifier",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "n8n-node-webhook",
+      "name": "Classifier Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst message = body.message || '';\nconst today = new Date().toISOString().slice(0, 10);\n\nconst systemPrompt = `You are a restaurant reservation assistant. Extract structured information from incoming messages.\n\nToday's date is ${today}.\n\nAlways respond with valid JSON only — no prose, no markdown, no code fences.\n\nRequired JSON schema:\n{\n  \"intent\": \"new_reservation\" | \"cancellation\" | \"modification\" | \"inquiry\" | \"other\",\n  \"name\": string | null,\n  \"phone\": string | null,\n  \"email\": string | null,\n  \"party_size\": number | null,\n  \"datetime\": string | null,\n  \"notes\": string | null,\n  \"confidence\": number\n}\n\nRules:\n- intent: classify the message purpose\n- datetime: ISO-8601 format (YYYY-MM-DDTHH:mm:00.000Z), infer from context if relative (\"tomorrow evening\" = next day at 20:00)\n- party_size: integer, extract from \"for 4\", \"table for two\", \"party of 5\", etc.\n- confidence: 0.0–1.0, how confident you are in the extraction\n- Use null for fields that cannot be determined from the message`;\n\nreturn [{\n  json: {\n    system_prompt: systemPrompt,\n    user_message: message,\n    channel: body.channel || 'unknown',\n    from: body.from || ''\n  }\n}];"
+      },
+      "id": "n8n-node-build-prompt",
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.OPENAI_API_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"temperature\": 0,\n  \"max_tokens\": 300,\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    { \"role\": \"system\", \"content\": {{ JSON.stringify($json.system_prompt) }} },\n    { \"role\": \"user\",   \"content\": {{ JSON.stringify($json.user_message) }} }\n  ]\n}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "n8n-node-openai",
+      "name": "Call OpenAI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [680, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "openai-api-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\n\nlet parsed;\ntry {\n  const content = response.choices?.[0]?.message?.content || '{}';\n  parsed = JSON.parse(content);\n} catch (err) {\n  parsed = {\n    intent: 'other',\n    name: null,\n    phone: null,\n    email: null,\n    party_size: null,\n    datetime: null,\n    notes: null,\n    confidence: 0\n  };\n}\n\n// Ensure confidence is a valid number\nparsed.confidence = Math.min(1, Math.max(0, Number(parsed.confidence) || 0));\n\n// Validate datetime format\nif (parsed.datetime) {\n  const d = new Date(parsed.datetime);\n  if (isNaN(d.getTime())) parsed.datetime = null;\n}\n\nreturn [{ json: parsed }];"
+      },
+      "id": "n8n-node-parse",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "n8n-node-respond",
+      "name": "Return Classification",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Classifier Webhook": {
+      "main": [
+        [{ "node": "Build Prompt", "type": "main", "index": 0 }]
+      ]
+    },
+    "Build Prompt": {
+      "main": [
+        [{ "node": "Call OpenAI", "type": "main", "index": 0 }]
+      ]
+    },
+    "Call OpenAI": {
+      "main": [
+        [{ "node": "Parse AI Response", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [{ "node": "Return Classification", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "notes": "Accepts a free-text message and returns structured JSON with intent, name, phone, email, party_size, datetime, and confidence. Uses gpt-4o-mini with json_object response format. Webhook URL: POST http://<n8n-host>:5678/webhook/ai-classifier"
+  }
+}

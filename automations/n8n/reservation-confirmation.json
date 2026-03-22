@@ -1,0 +1,138 @@
+{
+  "name": "TableFlow — Reservation Confirmation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "reservation-confirmation",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "n8n-node-webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.collectionName }}",
+              "value2": "reservations"
+            },
+            {
+              "value1": "={{ $json.body.action }}",
+              "value2": "create"
+            }
+          ]
+        }
+      },
+      "id": "n8n-node-if",
+      "name": "Is New Reservation?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const record = $input.first().json.body.record;\n\nconst guestName  = record.guest_name  || 'Guest';\nconst guestEmail = record.guest_email || '';\nconst guestPhone = record.guest_phone || '';\nconst partySize  = record.party_size  || 1;\nconst reservedAt = record.reserved_at ? new Date(record.reserved_at).toLocaleString() : '';\nconst notes      = record.notes       || '';\n\nreturn [{\n  json: {\n    to:       guestEmail,\n    phone:    guestPhone,\n    subject:  `Reservation Confirmed — ${guestName}`,\n    body:     `Dear ${guestName},\\n\\nYour reservation has been confirmed!\\n\\nDetails:\\n- Party: ${partySize} guests\\n- Date/Time: ${reservedAt}\\n${notes ? '- Notes: ' + notes + '\\n' : ''}\\nIf you need to cancel or change your reservation, please contact us.\\n\\nThank you,\\nTableFlow`,\n    html:     `<h2>Reservation Confirmed</h2><p>Dear <strong>${guestName}</strong>,</p><p>Your reservation has been confirmed.</p><ul><li><strong>Party size:</strong> ${partySize} guests</li><li><strong>Date/Time:</strong> ${reservedAt}</li>${notes ? '<li><strong>Notes:</strong> ' + notes + '</li>' : ''}</ul><p>See you soon!</p>`,\n    recordId: record.id\n  }\n}];"
+      },
+      "id": "n8n-node-prepare",
+      "name": "Prepare Notification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 220]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_USER }}",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "n8n-node-email",
+      "name": "Send Confirmation Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [900, 220],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credentials",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.POCKETBASE_URL }}/api/collections/reservation_logs/records",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "reservation_id",
+              "value": "={{ $('Prepare Notification').item.json.recordId }}"
+            },
+            {
+              "name": "event",
+              "value": "confirmation_sent"
+            },
+            {
+              "name": "details",
+              "value": "={{ JSON.stringify({ channel: 'email', to: $('Prepare Notification').item.json.to }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n8n-node-log",
+      "name": "Log Confirmation Sent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 220]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [{ "node": "Is New Reservation?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Is New Reservation?": {
+      "main": [
+        [{ "node": "Prepare Notification", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Prepare Notification": {
+      "main": [
+        [{ "node": "Send Confirmation Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Confirmation Email": {
+      "main": [
+        [{ "node": "Log Confirmation Sent", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "notes": "Triggered by a PocketBase webhook on reservation create. Sends a confirmation email and logs the event. Configure the PocketBase webhook URL to: POST http://<n8n-host>:5678/webhook/reservation-confirmation"
+  }
+}

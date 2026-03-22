@@ -1,0 +1,12 @@
+{
+  "name": "tableflow-seed",
+  "version": "1.0.0",
+  "description": "Seed data script for TableFlow",
+  "type": "module",
+  "scripts": {
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "pocketbase": "^0.22.0"
+  }
+}

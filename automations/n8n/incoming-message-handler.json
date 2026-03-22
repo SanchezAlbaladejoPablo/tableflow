@@ -1,0 +1,168 @@
+{
+  "name": "TableFlow — Incoming Message Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "incoming-message",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "n8n-node-webhook",
+      "name": "Incoming Message Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "notes": "Receives messages from email parsers, Twilio SMS, WhatsApp Business API, etc."
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\n// Normalize different message source formats\nconst message = body.text || body.Body || body.message || body.content || '';\nconst from    = body.from || body.From || body.sender || '';\nconst channel = body.channel || (body.From ? 'sms' : 'email');\n\nif (!message.trim()) {\n  return [{ json: { error: 'Empty message', skip: true } }];\n}\n\nreturn [{\n  json: {\n    raw_message: message,\n    from_contact: from,\n    channel: channel,\n    received_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "n8n-node-normalize",
+      "name": "Normalize Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.skip }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "n8n-node-skip-check",
+      "name": "Skip Empty?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.N8N_BASE_URL }}/webhook/ai-classifier",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "message",  "value": "={{ $json.raw_message }}" },
+            { "name": "channel",  "value": "={{ $json.channel }}" },
+            { "name": "from",     "value": "={{ $json.from_contact }}" }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "n8n-node-classify",
+      "name": "Call AI Classifier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 220]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.intent }}",
+              "value2": "new_reservation"
+            }
+          ]
+        }
+      },
+      "id": "n8n-node-intent-check",
+      "name": "Is New Reservation?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1120, 220]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.POCKETBASE_URL }}/api/collections/reservations/records",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "restaurant_id",    "value": "={{ $env.DEFAULT_RESTAURANT_ID }}" },
+            { "name": "guest_name",       "value": "={{ $('Call AI Classifier').item.json.name || $('Normalize Message').item.json.from_contact }}" },
+            { "name": "guest_phone",      "value": "={{ $('Call AI Classifier').item.json.phone || '' }}" },
+            { "name": "guest_email",      "value": "={{ $('Call AI Classifier').item.json.email || '' }}" },
+            { "name": "party_size",       "value": "={{ $('Call AI Classifier').item.json.party_size || 2 }}" },
+            { "name": "reserved_at",      "value": "={{ $('Call AI Classifier').item.json.datetime || '' }}" },
+            { "name": "duration_minutes", "value": "90" },
+            { "name": "status",           "value": "pending" },
+            { "name": "source",           "value": "ai_classified" },
+            { "name": "ai_confidence",    "value": "={{ $('Call AI Classifier').item.json.confidence || 0 }}" },
+            { "name": "notes",            "value": "=Auto-created from {{ $('Normalize Message').item.json.channel }} message: {{ $('Normalize Message').item.json.raw_message.slice(0, 200) }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "n8n-node-create-reservation",
+      "name": "Create Reservation in PocketBase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 140]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ received: true, intent: $('Call AI Classifier').item.json.intent, message: 'Your request has been received and will be processed shortly.' }) }}"
+      },
+      "id": "n8n-node-respond",
+      "name": "Respond to Sender",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1560, 220]
+    }
+  ],
+  "connections": {
+    "Incoming Message Webhook": {
+      "main": [
+        [{ "node": "Normalize Message", "type": "main", "index": 0 }]
+      ]
+    },
+    "Normalize Message": {
+      "main": [
+        [{ "node": "Skip Empty?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Skip Empty?": {
+      "main": [
+        [],
+        [{ "node": "Call AI Classifier", "type": "main", "index": 0 }]
+      ]
+    },
+    "Call AI Classifier": {
+      "main": [
+        [{ "node": "Is New Reservation?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Is New Reservation?": {
+      "main": [
+        [{ "node": "Create Reservation in PocketBase", "type": "main", "index": 0 }],
+        [{ "node": "Respond to Sender", "type": "main", "index": 0 }]
+      ]
+    },
+    "Create Reservation in PocketBase": {
+      "main": [
+        [{ "node": "Respond to Sender", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "notes": "Receives incoming reservation messages from any channel (email, SMS, WhatsApp). Normalizes the message, calls the AI classifier workflow, and if intent is 'new_reservation', creates it in PocketBase automatically. Webhook URL: POST http://<n8n-host>:5678/webhook/incoming-message"
+  }
+}

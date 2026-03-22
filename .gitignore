@@ -1,0 +1,21 @@
+# PocketBase binary and data
+pocketbase
+pb_data/
+
+# Environment variables
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+
+# Node (por si se añade en el futuro)
+node_modules/

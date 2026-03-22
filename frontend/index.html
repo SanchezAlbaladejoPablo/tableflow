@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TableFlow — Restaurant Reservation Manager</title>
+
+    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/floor-plan.css" />
+
+    <!--
+        App configuration.
+        In production, replace these values with your actual PocketBase URL and
+        restaurant ID. Do not commit secrets here — this is public client-side config.
+    -->
+    <script>
+        window.APP_CONFIG = {
+            POCKETBASE_URL: "http://localhost:8090",
+            RESTAURANT_ID: "",   // Set from URL param or after auth
+        };
+    </script>
+</head>
+<body>
+
+<!-- ======================================================
+     Login overlay — shown when user is not authenticated
+====================================================== -->
+<div class="login-overlay" id="login-overlay" hidden>
+    <!-- Populated by login.js -->
+</div>
+
+<div class="app" id="app">
+
+    <!-- ======================================================
+         Header
+    ====================================================== -->
+    <header class="app-header">
+        <span class="app-header__logo">TableFlow</span>
+        <span class="app-header__restaurant" id="restaurant-name"></span>
+
+        <nav class="app-nav" aria-label="Main navigation">
+            <button class="app-nav__tab app-nav__tab--active" data-tab="floor-plan" type="button">
+                Floor Plan
+            </button>
+            <button class="app-nav__tab" data-tab="reservations" type="button">
+                Reservations
+            </button>
+            <button class="app-nav__tab" data-tab="customers" type="button">
+                Customers
+            </button>
+        </nav>
+
+        <div class="flex items-center gap-2 ml-auto">
+            <div class="spinner hidden" id="global-spinner" aria-label="Loading"></div>
+            <span class="sse-indicator sse-indicator--disconnected" id="sse-indicator" title="Tiempo real: conectando…" aria-label="Estado conexión en tiempo real"></span>
+            <span class="app-header__user" id="header-user-name" hidden></span>
+            <button class="btn btn--ghost btn--sm" id="btn-logout" type="button" hidden>
+                Cerrar sesión
+            </button>
+        </div>
+    </header>
+
+    <!-- ======================================================
+         Main content
+    ====================================================== -->
+    <main class="app-main" id="app-main">
+
+        <!-- ------------------------------------------------
+             Tab: Floor Plan
+        ------------------------------------------------ -->
+        <section id="tab-floor-plan" class="tab-panel tab-panel--active" aria-label="Floor Plan">
+
+            <!-- Area tabs — TASK-059 -->
+            <div class="fp-area-tabs" role="tablist" aria-label="Zona del restaurante">
+                <button class="fp-area-tab fp-area-tab--active" data-area="all"     type="button" role="tab">Todas</button>
+                <button class="fp-area-tab"                     data-area="indoor"  type="button" role="tab">Interior</button>
+                <button class="fp-area-tab"                     data-area="outdoor" type="button" role="tab">Terraza</button>
+                <button class="fp-area-tab"                     data-area="bar"     type="button" role="tab">Barra</button>
+            </div>
+
+            <!-- Live controls (view mode) -->
+            <div class="floor-plan-controls" id="fp-controls-view">
+                <span class="floor-plan-live-badge">&#9679; Live</span>
+                <div class="floor-plan-legend-inline">
+                    <span class="legend-dot legend-dot--available"></span> Libre
+                    <span class="legend-dot legend-dot--reserved"></span> Reservada (próx. 3h)
+                    <span class="legend-dot legend-dot--occupied"></span> Ocupada
+                </div>
+                <button class="btn btn--primary ml-auto" id="btn-new-reservation-fp" type="button">
+                    + Nueva Reserva
+                </button>
+                <button class="btn btn--ghost" id="btn-toggle-edit" type="button" hidden>
+                    ✏️ Editar sala
+                </button>
+            </div>
+
+            <!-- Edit controls (edit mode) — TASK-055/057 -->
+            <div class="floor-plan-controls floor-plan-controls--edit" id="fp-controls-edit" hidden>
+                <span class="fp-edit-badge">&#9998; Modo edición</span>
+                <div class="fp-new-table-form" id="fp-new-table-form">
+                    <input type="number" id="fp-t-number"   class="form-input form-input--sm" placeholder="Nº" min="1" max="999" style="width:60px;" />
+                    <input type="number" id="fp-t-capacity" class="form-input form-input--sm" placeholder="Pax" min="1" max="50" value="4" style="width:60px;" />
+                    <select id="fp-t-area" class="form-select form-select--sm" style="width:100px;">
+                        <option value="indoor">Interior</option>
+                        <option value="outdoor">Terraza</option>
+                        <option value="bar">Barra</option>
+                    </select>
+                    <select id="fp-t-shape" class="form-select form-select--sm" style="width:110px;">
+                        <option value="rect">Rectangular</option>
+                        <option value="circle">Redonda</option>
+                    </select>
+                    <button class="btn btn--primary btn--sm" id="btn-fp-add-table" type="button">+ Mesa</button>
+                </div>
+                <button class="btn btn--ghost ml-auto" id="btn-toggle-view" type="button">
+                    ✓ Terminar edición
+                </button>
+            </div>
+
+            <div id="floor-plan-container" aria-label="Restaurant floor plan"></div>
+
+        </section>
+
+        <!-- ------------------------------------------------
+             Tab: Reservations
+        ------------------------------------------------ -->
+        <section id="tab-reservations" class="tab-panel" aria-label="Reservations" hidden>
+
+            <div class="toolbar">
+                <div class="quick-filters" role="group" aria-label="Quick date filter">
+                    <button class="quick-filter quick-filter--active" data-quick="today" type="button">Today</button>
+                    <button class="quick-filter" data-quick="tomorrow" type="button">Tomorrow</button>
+                    <button class="quick-filter" data-quick="all" type="button">All</button>
+                </div>
+
+                <label for="filter-date" class="sr-only">Filter by date</label>
+                <input type="date" id="filter-date" class="form-input" style="width: auto;" aria-label="Filter by date" />
+
+                <label for="filter-status" class="sr-only">Filter by status</label>
+                <select id="filter-status" class="form-select" style="width: auto;" aria-label="Filter by status">
+                    <option value="">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="seated">Seated</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="no_show">No Show</option>
+                </select>
+
+                <button class="btn btn--primary ml-auto" id="btn-new-reservation" type="button">
+                    + New Reservation
+                </button>
+            </div>
+
+            <div id="reservations-list-container"></div>
+
+        </section>
+
+        <!-- ------------------------------------------------
+             Tab: Customers
+        ------------------------------------------------ -->
+        <section id="tab-customers" class="tab-panel" aria-label="Customers" hidden>
+
+            <div class="toolbar">
+                <label for="customer-search" class="sr-only">Search customers</label>
+                <input
+                    type="search"
+                    id="customer-search"
+                    class="form-input"
+                    placeholder="Search by name, email or phone…"
+                    style="max-width: 320px;"
+                    aria-label="Search customers"
+                />
+
+                <button class="btn btn--primary ml-auto" id="btn-new-customer" type="button">
+                    + New Customer
+                </button>
+            </div>
+
+            <div id="customers-list-container"></div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<!-- ======================================================
+     Modal: Table Detail
+====================================================== -->
+<div class="modal-backdrop hidden" id="table-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="table-modal-title">
+    <div class="modal">
+        <div class="modal__header">
+            <div>
+                <h2 class="modal__title" id="table-modal-title">Mesa —</h2>
+                <p class="modal__subtitle" id="table-modal-subtitle"></p>
+            </div>
+            <button class="modal__close" id="table-modal-close" type="button" aria-label="Cerrar">&#x2715;</button>
+        </div>
+        <div class="modal__body" id="table-modal-body">
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="table-modal-cancel" type="button">Cerrar</button>
+            <button class="btn btn--primary" id="table-modal-new-reservation" type="button">+ Nueva Reserva</button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================
+     Modal: Reservation Form
+====================================================== -->
+<div class="modal-backdrop hidden" id="reservation-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reservation-modal-title">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title" id="reservation-modal-title">New Reservation</h2>
+            <button class="modal__close" id="reservation-modal-close" type="button" aria-label="Close modal">&#x2715;</button>
+        </div>
+        <div class="modal__body" id="reservation-modal-body">
+            <!-- Populated by reservation-form.js -->
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="reservation-modal-cancel" type="button">Cancel</button>
+            <button class="btn btn--primary" id="reservation-modal-save" type="button">Save Reservation</button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================
+     Modal: Customer Form
+====================================================== -->
+<div class="modal-backdrop hidden" id="customer-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="customer-modal-title">
+    <div class="modal">
+        <div class="modal__header">
+            <h2 class="modal__title" id="customer-modal-title">New Customer</h2>
+            <button class="modal__close" id="customer-modal-close" type="button" aria-label="Close modal">&#x2715;</button>
+        </div>
+        <div class="modal__body" id="customer-modal-body">
+            <!-- Populated by customer-form.js -->
+        </div>
+        <div class="modal__footer">
+            <button class="btn btn--ghost" id="customer-modal-cancel" type="button">Cancel</button>
+            <button class="btn btn--primary" id="customer-modal-save" type="button">Save Customer</button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================================
+     Toast notifications container
+====================================================== -->
+<div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+<!-- ======================================================
+     Application entry point
+====================================================== -->
+<script type="module" src="src/app.js"></script>
+
+</body>
+</html>

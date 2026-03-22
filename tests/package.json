@@ -1,0 +1,13 @@
+{
+  "name": "tableflow-tests",
+  "version": "1.0.0",
+  "description": "Test suite for TableFlow",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "test:watch": "node --test --watch"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
