@@ -51,6 +51,9 @@
             <button class="app-nav__tab" data-tab="analytics" type="button">
                 Analíticas
             </button>
+            <button class="app-nav__tab app-nav__tab--admin" data-tab="settings" type="button" hidden>
+                ⚙ Ajustes
+            </button>
         </nav>
 
         <div class="flex items-center gap-2 ml-auto">
@@ -188,6 +191,13 @@
         ------------------------------------------------ -->
         <section id="tab-analytics" class="tab-panel" aria-label="Analíticas" hidden>
             <div id="analytics-container"></div>
+        </section>
+
+        <!-- ------------------------------------------------
+             Tab: Settings (admin only)
+        ------------------------------------------------ -->
+        <section id="tab-settings" class="tab-panel" aria-label="Ajustes" hidden>
+            <div id="settings-container"></div>
         </section>
 
     </main>

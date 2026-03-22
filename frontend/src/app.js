@@ -25,12 +25,13 @@ import { ReservationList }      from "./components/reservation-list.js";
 import { CustomerForm }         from "./components/customer-form.js";
 import { escHtml }              from "./utils/html.js";
 import { restoreSession, getCurrentUser, getCurrentRestaurantId, logout } from "./services/auth.js";
-import { loadSettings, getPrimaryColor }   from "./services/settings.js";
+import { loadSettings as loadRestaurantSettings, getPrimaryColor } from "./services/settings.js";
 import { LoginPage }            from "./pages/login.js";
 import { RegisterPage }         from "./pages/register.js";
 import { OnboardingWizard }     from "./pages/onboarding.js";
 import { initRealtime, destroyRealtime, subscribe, onStatusChange } from "./services/realtime.js";
-import { Analytics } from "./components/analytics.js";
+import { Analytics }      from "./components/analytics.js";
+import { SettingsPanel }  from "./components/settings-panel.js";
 
 // ---------------------------------------------------------------------------
 // Application state
@@ -60,6 +61,9 @@ let customerForm;
 /** @type {Analytics|null} */
 let analyticsComponent = null;
 
+/** @type {SettingsPanel|null} */
+let settingsPanel = null;
+
 // ---------------------------------------------------------------------------
 // Initialisation
 // ---------------------------------------------------------------------------
@@ -86,7 +90,7 @@ async function boot() {
             // Authenticated but no restaurant yet — show onboarding
             showOnboarding(user);
         } else {
-            await loadSettings(restaurantId);
+            await loadRestaurantSettings(restaurantId);
             _applyBranding();
             await init();
         }
@@ -139,7 +143,7 @@ function showLoginOverlay() {
 
         overlay.hidden = true;
         if (app) app.hidden = false;
-        await loadSettings(restaurantId);
+        await loadRestaurantSettings(restaurantId);
         _applyBranding();
         await init();
     }, { once: true });
@@ -159,7 +163,7 @@ function showOnboarding(user) {
     overlay.addEventListener("onboardingcomplete", async () => {
         overlay.hidden = true;
         if (app) app.hidden = false;
-        await loadSettings(restaurantId);
+        await loadRestaurantSettings(restaurantId);
         _applyBranding();
         await init();
     }, { once: true });
@@ -225,6 +229,7 @@ async function init() {
     setupReservationsTab();
     setupCustomersTab();
     setupAnalyticsTab();
+    setupSettingsTab();
     setupReservationModal();
     setupCustomerModal();
     setupTableModal();
@@ -266,6 +271,7 @@ function switchTab(tabId) {
     if (tabId === "reservations") loadReservations();
     if (tabId === "customers")    loadCustomers();
     if (tabId === "analytics")    loadAnalytics();
+    if (tabId === "settings")     loadSettings();
 }
 
 // ---------------------------------------------------------------------------
@@ -507,6 +513,26 @@ function loadAnalytics() {
     analyticsComponent?.destroy();
     analyticsComponent = new Analytics(restaurantId);
     analyticsComponent.render(container);
+}
+
+// ---------------------------------------------------------------------------
+// Settings tab — Phase 17 (admin only)
+// ---------------------------------------------------------------------------
+
+function setupSettingsTab() {
+    // Show the tab only for admin roles
+    const user = getCurrentUser();
+    if (user?.role === "restaurant_admin" || user?.role === "superadmin") {
+        document.querySelector(".app-nav__tab--admin")?.removeAttribute("hidden");
+    }
+}
+
+function loadSettings() {
+    const container = document.getElementById("settings-container");
+    if (!container) return;
+
+    settingsPanel = new SettingsPanel(restaurantId);
+    settingsPanel.render(container);
 }
 
 // ---------------------------------------------------------------------------

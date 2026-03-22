@@ -183,11 +183,11 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-070 | Add booking widget settings in restaurant_settings (enable/disable, token, custom message) | PENDING |
-| TASK-071 | Create standalone booking widget page (`frontend/widget.html`) — minimal UI, no auth, embeddable as iframe | PENDING |
-| TASK-072 | Implement public availability check endpoint (widget token scoped to one restaurant, read-only capacity check) | PENDING |
-| TASK-073 | Implement public reservation creation (widget token, create-only, source=widget, status=pending) | PENDING |
-| TASK-074 | Generate embed code snippet in settings for restaurant owners to paste into their website | PENDING |
+| TASK-070 | Add booking widget settings in restaurant_settings (enable/disable, token, custom message) | DONE |
+| TASK-071 | Create standalone booking widget page (`frontend/widget.html`) — minimal UI, no auth, embeddable as iframe | DONE |
+| TASK-072 | Implement public availability check endpoint (widget token scoped to one restaurant, read-only capacity check) | DONE |
+| TASK-073 | Implement public reservation creation (widget token, create-only, source=widget, status=pending) | DONE |
+| TASK-074 | Generate embed code snippet in settings for restaurant owners to paste into their website | DONE |
 
 ---
 

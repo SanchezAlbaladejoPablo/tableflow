@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reservar mesa</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,.10);
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .logo {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--brand, #6366f1);
+            margin-bottom: 4px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 24px;
+        }
+
+        .field { margin-bottom: 16px; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            color: #0f172a;
+            background: #fff;
+            transition: border-color .15s;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--brand, #6366f1);
+            box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+        }
+
+        textarea { resize: vertical; min-height: 72px; }
+
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            background: var(--brand, #6366f1);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: opacity .15s;
+        }
+
+        .btn:hover  { opacity: .88; }
+        .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+        .availability {
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .availability--ok      { background: #f0fdf4; color: #166534; display: block; }
+        .availability--warning { background: #fffbeb; color: #92400e; display: block; }
+
+        .state { text-align: center; padding: 24px 0; }
+        .state__icon { font-size: 48px; margin-bottom: 12px; }
+        .state__title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+        .state__body  { font-size: 14px; color: #64748b; line-height: 1.5; }
+
+        .spinner {
+            display: inline-block;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .powered {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 20px;
+        }
+
+        .powered a { color: inherit; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <!-- Loading -->
+    <div id="state-loading" class="state">
+        <div style="margin-bottom:12px">
+            <span class="spinner" style="border-color:rgba(99,102,241,.3);border-top-color:#6366f1;width:32px;height:32px;border-width:3px;"></span>
+        </div>
+        <div class="state__body">Cargando…</div>
+    </div>
+
+    <!-- Error (token inválido / widget desactivado) -->
+    <div id="state-error" class="state" hidden>
+        <div class="state__icon">⚠️</div>
+        <div class="state__title">Widget no disponible</div>
+        <div class="state__body" id="error-msg">El enlace de reserva no es válido o ha sido desactivado.</div>
+    </div>
+
+    <!-- Booking form -->
+    <div id="state-form" hidden>
+        <div class="logo" id="widget-logo">TableFlow</div>
+        <h1 id="widget-restaurant-name">Reservar mesa</h1>
+        <p class="subtitle" id="widget-message">Completa el formulario y te confirmaremos la reserva.</p>
+
+        <form id="booking-form" novalidate>
+
+            <div class="row">
+                <div class="field">
+                    <label for="w-date">Fecha <span aria-hidden="true">*</span></label>
+                    <input type="date" id="w-date" required />
+                </div>
+                <div class="field">
+                    <label for="w-time">Hora <span aria-hidden="true">*</span></label>
+                    <input type="time" id="w-time" required step="900" />
+                </div>
+            </div>
+
+            <div id="availability-msg" class="availability" role="status"></div>
+
+            <div class="field">
+                <label for="w-name">Nombre <span aria-hidden="true">*</span></label>
+                <input type="text" id="w-name" required placeholder="Tu nombre completo" autocomplete="name" />
+            </div>
+
+            <div class="row">
+                <div class="field">
+                    <label for="w-phone">Teléfono</label>
+                    <input type="tel" id="w-phone" placeholder="+34 600 000 000" autocomplete="tel" />
+                </div>
+                <div class="field">
+                    <label for="w-pax">Personas <span aria-hidden="true">*</span></label>
+                    <input type="number" id="w-pax" min="1" max="20" value="2" required />
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="w-email">Email</label>
+                <input type="email" id="w-email" placeholder="tu@email.com" autocomplete="email" />
+            </div>
+
+            <div class="field">
+                <label for="w-notes">Solicitudes especiales</label>
+                <textarea id="w-notes" placeholder="Alergias, silla de bebé, cumpleaños…"></textarea>
+            </div>
+
+            <button class="btn" type="submit" id="btn-submit">Solicitar reserva</button>
+        </form>
+    </div>
+
+    <!-- Success -->
+    <div id="state-success" class="state" hidden>
+        <div class="state__icon">🎉</div>
+        <div class="state__title">¡Reserva recibida!</div>
+        <div class="state__body" id="success-msg">
+            Hemos recibido tu solicitud. Te confirmaremos la reserva a la brevedad.
+        </div>
+    </div>
+
+    <p class="powered">Gestionado con <a href="#" tabindex="-1">TableFlow</a></p>
+
+</div>
+
+<script>
+(async () => {
+    // -------------------------------------------------------------------------
+    // Config — read from URL params
+    // -------------------------------------------------------------------------
+    const params   = new URLSearchParams(location.search);
+    const TOKEN    = params.get("token") ?? "";
+    const PB_URL   = (params.get("pb") ?? "http://localhost:8090").replace(/\/+$/, "");
+    const TIMEOUT  = 12_000;
+
+    // -------------------------------------------------------------------------
+    // State helpers
+    // -------------------------------------------------------------------------
+    function show(id) {
+        ["state-loading", "state-error", "state-form", "state-success"].forEach((s) => {
+            document.getElementById(s).hidden = s !== id;
+        });
+    }
+
+    function showError(msg) {
+        document.getElementById("error-msg").textContent = msg;
+        show("state-error");
+    }
+
+    // -------------------------------------------------------------------------
+    // HTTP helper (no auth)
+    // -------------------------------------------------------------------------
+    async function apiFetch(path, options = {}) {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), TIMEOUT);
+        try {
+            const res = await fetch(PB_URL + path, {
+                ...options,
+                signal: controller.signal,
+                headers: { "Content-Type": "application/json", ...(options.headers ?? {}) },
+            });
+            clearTimeout(tid);
+            const data = res.status === 204 ? {} : await res.json();
+            return { ok: res.ok, status: res.status, data };
+        } catch (err) {
+            clearTimeout(tid);
+            return { ok: false, status: 0, data: { message: err.message } };
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Boot — resolve restaurant from token
+    // -------------------------------------------------------------------------
+    if (!TOKEN) { showError("No se proporcionó un token de reserva."); return; }
+
+    const settingsRes = await apiFetch(
+        `/api/collections/restaurant_settings/records?filter=booking_widget_token%3D%22${encodeURIComponent(TOKEN)}%22&perPage=1`
+    );
+
+    if (!settingsRes.ok || !settingsRes.data.items?.length) {
+        showError("El enlace de reserva no es válido o ha expirado.");
+        return;
+    }
+
+    const settings = settingsRes.data.items[0];
+
+    if (!settings.booking_widget_enabled) {
+        showError("Las reservas online están desactivadas en este momento.");
+        return;
+    }
+
+    const RESTAURANT_ID   = settings.restaurant_id;
+    const OPENING_TIME    = settings.opening_time   ?? "13:00";
+    const CLOSING_TIME    = settings.closing_time   ?? "23:30";
+    const DURATION_MIN    = settings.default_duration_minutes ?? 90;
+    const CUSTOM_MSG      = settings.booking_widget_message ?? "";
+
+    // Fetch restaurant name
+    const restRes = await apiFetch(`/api/collections/restaurants/records/${RESTAURANT_ID}`);
+    const restaurantName = restRes.ok ? (restRes.data.name ?? "Restaurante") : "Restaurante";
+
+    // Apply branding
+    if (settings.primary_color) {
+        document.documentElement.style.setProperty("--brand", settings.primary_color);
+    }
+
+    document.getElementById("widget-restaurant-name").textContent = restaurantName;
+    document.getElementById("widget-logo").textContent            = restaurantName;
+    if (CUSTOM_MSG) document.getElementById("widget-message").textContent = CUSTOM_MSG;
+    document.title = `Reservar en ${restaurantName}`;
+
+    // Pre-fill date to today
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById("w-date").value = today;
+    document.getElementById("w-date").min   = today;
+    document.getElementById("w-time").value = OPENING_TIME;
+
+    show("state-form");
+
+    // -------------------------------------------------------------------------
+    // TASK-072 — Availability check (operating hours + existing reservation count)
+    // -------------------------------------------------------------------------
+    const availEl = document.getElementById("availability-msg");
+
+    async function checkAvailability() {
+        const date = document.getElementById("w-date").value;
+        const time = document.getElementById("w-time").value;
+        if (!date || !time) { availEl.className = "availability"; return; }
+
+        // Operating hours check
+        if (time < OPENING_TIME || time > CLOSING_TIME) {
+            availEl.className   = "availability availability--warning";
+            availEl.textContent = `Horario: ${OPENING_TIME}–${CLOSING_TIME}. Por favor elige una hora dentro del horario.`;
+            return;
+        }
+
+        // Count existing reservations for that slot (±duration window)
+        const fromStr = `${date} ${time}:00.000Z`;
+        const enc     = encodeURIComponent;
+        const filter  = enc(`restaurant_id="${RESTAURANT_ID}" && reserved_at>="${fromStr}" && status!="cancelled" && status!="no_show"`);
+        const countRes = await apiFetch(`/api/collections/reservations/records?filter=${filter}&perPage=1`);
+        const total    = countRes.ok ? (countRes.data.totalItems ?? 0) : 0;
+
+        availEl.className   = "availability availability--ok";
+        availEl.textContent = total === 0
+            ? "Hay disponibilidad para este horario."
+            : `${total} reserva${total !== 1 ? "s" : ""} existente${total !== 1 ? "s" : ""} en esta franja.`;
+    }
+
+    document.getElementById("w-date").addEventListener("change", checkAvailability);
+    document.getElementById("w-time").addEventListener("change", checkAvailability);
+
+    // -------------------------------------------------------------------------
+    // TASK-073 — Submit reservation (source=widget, status=pending)
+    // -------------------------------------------------------------------------
+    document.getElementById("booking-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const date  = document.getElementById("w-date").value;
+        const time  = document.getElementById("w-time").value;
+        const name  = document.getElementById("w-name").value.trim();
+        const pax   = Number(document.getElementById("w-pax").value);
+        const phone = document.getElementById("w-phone").value.trim();
+        const email = document.getElementById("w-email").value.trim();
+        const notes = document.getElementById("w-notes").value.trim();
+
+        if (!date || !time || !name || !pax) {
+            alert("Por favor completa los campos obligatorios (fecha, hora, nombre y número de personas).");
+            return;
+        }
+
+        if (time < OPENING_TIME || time > CLOSING_TIME) {
+            alert(`El horario de reservas es de ${OPENING_TIME} a ${CLOSING_TIME}.`);
+            return;
+        }
+
+        const btn = document.getElementById("btn-submit");
+        btn.disabled     = true;
+        btn.innerHTML    = `<span class="spinner"></span> Enviando…`;
+
+        const reservedAt = `${date} ${time}:00.000Z`;
+
+        const body = {
+            restaurant_id:    RESTAURANT_ID,
+            guest_name:       name,
+            guest_phone:      phone || undefined,
+            guest_email:      email || undefined,
+            party_size:       pax,
+            reserved_at:      reservedAt,
+            duration_minutes: DURATION_MIN,
+            status:           "pending",
+            source:           "widget",
+            notes:            notes || undefined,
+        };
+
+        const res = await apiFetch("/api/collections/reservations/records", {
+            method: "POST",
+            body:   JSON.stringify(body),
+        });
+
+        if (res.ok) {
+            show("state-success");
+        } else {
+            btn.disabled  = false;
+            btn.innerHTML = "Solicitar reserva";
+            const msg = res.data?.message ?? "Error al enviar la reserva. Inténtalo de nuevo.";
+            alert(msg);
+        }
+    });
+
+})();
+</script>
+
+</body>
+</html>
