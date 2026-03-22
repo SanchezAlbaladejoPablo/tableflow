@@ -20,6 +20,7 @@ import { listTables, getFloorPlanStatus, createTable, deleteTable } from "./serv
 import { deleteReservation, getUpcomingTableReservations } from "./services/reservations.js";
 import { deleteCustomer }       from "./services/customers.js";
 import { FloorPlan }            from "./components/floor-plan.js";
+import { FloorPlan2_5D }       from "./components/floor-plan-2_5d.js";
 import { ReservationForm }      from "./components/reservation-form.js";
 import { ReservationList }      from "./components/reservation-list.js";
 import { CustomerForm }         from "./components/customer-form.js";
@@ -409,7 +410,8 @@ async function _rebuildFloorPlan() {
     const tables = tablesResult.data.items ?? [];
 
     floorPlan?.destroy();
-    floorPlan = new FloorPlan(container, {
+    const FloorPlanClass = window.APP_CONFIG?.USE_2_5D_FLOOR_PLAN ? FloorPlan2_5D : FloorPlan;
+    floorPlan = new FloorPlanClass(container, {
         draggable: fpEditMode,
         editMode:  fpEditMode,
     });

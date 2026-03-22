@@ -31,7 +31,7 @@ _Last updated: 2026-03-22_
 | Phase 19 — Security Hardening (SaaS) | SKIP |
 | Phase 20 — Billing & Subscriptions (SaaS) | SKIP |
 | Phase 21 — Floorplan 3D / Three.js | DEPRECATED |
-| Phase 22 — Floorplan 2.5D Isometric Engine | PENDING |
+| Phase 22 — Floorplan 2.5D Isometric Engine | COMPLETE |
 
 ---
 

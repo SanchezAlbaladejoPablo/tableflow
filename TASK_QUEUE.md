@@ -326,12 +326,12 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-122 | Crear `frontend/src/components/floor-plan-2_5d.js` — clase `FloorPlan2_5D` con interfaz idéntica a `FloorPlan`: `render(tables, statuses)`, `update(statuses)`, `destroy()` | PENDING |
-| TASK-123 | Crear `<canvas>` y contexto 2D dentro del contenedor; implementar resize handler que escale el canvas sin distorsionar la perspectiva isométrica | PENDING |
-| TASK-124 | Implementar sistema de coordenadas isométricas: funciones `worldToScreen(x, y)` y `screenToWorld(sx, sy)` para convertir entre coordenadas del modelo (pos_x, pos_y de las mesas) y píxeles en canvas | PENDING |
-| TASK-125 | Implementar loop de render con `requestAnimationFrame`; render dirty-flag para no redibujar si no hay cambios | PENDING |
-| TASK-126 | Implementar sistema de capas de render: 1) suelo, 2) decoraciones traseras, 3) mesas+sillas, 4) personajes, 5) indicadores de estado, 6) UI overlay | PENDING |
-| TASK-127 | Añadir flag `USE_2_5D_FLOOR_PLAN: false` en `APP_CONFIG` de `index.html` y lógica en `app.js` para instanciar `FloorPlan2_5D` cuando está activo | PENDING |
+| TASK-122 | Crear `frontend/src/components/floor-plan-2_5d.js` — clase `FloorPlan2_5D` con interfaz idéntica a `FloorPlan`: `render(tables, statuses)`, `update(statuses)`, `destroy()` | DONE | 
+| TASK-123 | Crear `<canvas>` y contexto 2D dentro del contenedor; implementar resize handler que escale el canvas sin distorsionar la perspectiva isométrica | DONE | 
+| TASK-124 | Implementar sistema de coordenadas isométricas: funciones `worldToScreen(x, y)` y `screenToWorld(sx, sy)` para convertir entre coordenadas del modelo (pos_x, pos_y de las mesas) y píxeles en canvas | DONE | 
+| TASK-125 | Implementar loop de render con `requestAnimationFrame`; render dirty-flag para no redibujar si no hay cambios | DONE | 
+| TASK-126 | Implementar sistema de capas de render: 1) suelo, 2) decoraciones traseras, 3) mesas+sillas, 4) personajes, 5) indicadores de estado, 6) UI overlay | DONE | 
+| TASK-127 | Añadir flag `USE_2_5D_FLOOR_PLAN: false` en `APP_CONFIG` de `index.html` y lógica en `app.js` para instanciar `FloorPlan2_5D` cuando está activo | DONE | 
 
 ---
 
@@ -342,14 +342,14 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-128 | Crear `frontend/src/utils/iso-sprites.js` — módulo central con función `drawSprite(ctx, type, x, y, options)` que despacha al dibujante correcto según `type` | PENDING |
-| TASK-129 | Sprite `table-rect`: mesa rectangular isométrica dibujada con paths — tablero, laterales, patas; acepta `color` (pastel) y `capacity` | PENDING |
-| TASK-130 | Sprite `table-round`: mesa redonda isométrica — elipse para el tablero, cilindro simplificado lateral | PENDING |
-| TASK-131 | Sprite `chair`: silla isométrica pequeña — asiento cuadrado + respaldo; se colocan N sillas alrededor de la mesa según `capacity` (posiciones predefinidas para 2, 4, 6 personas) | PENDING |
-| TASK-132 | Sprite `plant`: maceta isométrica — cuerpo cilíndrico marrón + esfera verde encima; decoración de ambiente | PENDING |
-| TASK-133 | Sprite `door`: puerta de entrada al restaurante — arco isométrico con marco; punto de spawn para personajes | PENDING |
-| TASK-134 | Sprite `floor-tile`: baldosa isométrica individual en color crema `#F5E6C8` con borde sutil; el suelo se construye como una rejilla de tiles | PENDING |
-| TASK-135 | Crear `frontend/src/utils/iso-palette.js` — constantes de color para cada tipo de sprite y función `getStatusColor(status)` → `{ free: '#4ADE80', pending: '#FCD34D', reserved: '#60A5FA', seated: '#F87171' }` | PENDING |
+| TASK-128 | Crear `frontend/src/utils/iso-sprites.js` — módulo central con función `drawSprite(ctx, type, x, y, options)` que despacha al dibujante correcto según `type` | DONE | 
+| TASK-129 | Sprite `table-rect`: mesa rectangular isométrica dibujada con paths — tablero, laterales, patas; acepta `color` (pastel) y `capacity` | DONE | 
+| TASK-130 | Sprite `table-round`: mesa redonda isométrica — elipse para el tablero, cilindro simplificado lateral | DONE |
+| TASK-131 | Sprite `chair`: silla isométrica pequeña — asiento cuadrado + respaldo; se colocan N sillas alrededor de la mesa según `capacity` (posiciones predefinidas para 2, 4, 6 personas) | DONE |
+| TASK-132 | Sprite `plant`: maceta isométrica — cuerpo cilíndrico marrón + esfera verde encima; decoración de ambiente | DONE |
+| TASK-133 | Sprite `door`: puerta de entrada al restaurante — arco isométrico con marco; punto de spawn para personajes | DONE |
+| TASK-134 | Sprite `floor-tile`: baldosa isométrica individual en color crema `#F5E6C8` con borde sutil; el suelo se construye como una rejilla de tiles | DONE |
+| TASK-135 | Crear `frontend/src/utils/iso-palette.js` — constantes de color para cada tipo de sprite y función `getStatusColor(status)` → `{ free: '#4ADE80', pending: '#FCD34D', reserved: '#60A5FA', seated: '#F87171' }` | DONE |
 
 ---
 
@@ -357,10 +357,10 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-136 | Dibujar indicador de estado sobre cada mesa: rombo isométrico pequeño en el color del estado actual (usa `getStatusColor`) | PENDING |
-| TASK-137 | Animación de cambio de estado: interpolar el color del indicador durante 400ms usando `requestAnimationFrame` y lerp de componentes RGB | PENDING |
-| TASK-138 | Hover highlight: cuando el cursor está sobre una mesa, dibujarla con brillo aumentado (mezcla con blanco al 20%) y offset vertical de -4px | PENDING |
-| TASK-139 | Efecto pulso en mesas con estado `seated`: el indicador escala entre 1.0 y 1.3 con una sinusoide de periodo 2s — llama la atención del staff | PENDING |
+| TASK-136 | Dibujar indicador de estado sobre cada mesa: rombo isométrico pequeño en el color del estado actual (usa `getStatusColor`) | DONE |
+| TASK-137 | Animación de cambio de estado: interpolar el color del indicador durante 400ms usando `requestAnimationFrame` y lerp de componentes RGB | DONE |
+| TASK-138 | Hover highlight: cuando el cursor está sobre una mesa, dibujarla con brillo aumentado (mezcla con blanco al 20%) y offset vertical de -4px | DONE |
+| TASK-139 | Efecto pulso en mesas con estado `seated`: el indicador escala entre 1.0 y 1.3 con una sinusoide de periodo 2s — llama la atención del staff | DONE |
 
 ---
 
@@ -368,10 +368,10 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-140 | Detección de click en mesa: hit-test AABB isométrico sobre el área de cada mesa; despachar `CustomEvent("tableselect", { detail: { table } })` — misma interfaz que SVG | PENDING |
-| TASK-141 | Hover: listener `pointermove` en canvas → detectar mesa bajo cursor → cambiar `cursor` a `pointer`, activar highlight, limpiar al salir | PENDING |
-| TASK-142 | Tooltip flotante HTML: al hacer hover, mostrar `<div>` superpuesto al canvas con nombre de mesa, capacidad y estado; posicionado con `worldToScreen` + `getBoundingClientRect` | PENDING |
-| TASK-143 | Drag-and-drop en modo edición: `pointerdown` + `pointermove` + `pointerup`; convertir coordenadas de pantalla a mundo con `screenToWorld`; despachar `CustomEvent("tablemove", { detail: { tableId, x, y } })` | PENDING |
+| TASK-140 | Detección de click en mesa: hit-test AABB isométrico sobre el área de cada mesa; despachar `CustomEvent("tableselect", { detail: { table } })` — misma interfaz que SVG | DONE |
+| TASK-141 | Hover: listener `pointermove` en canvas → detectar mesa bajo cursor → cambiar `cursor` a `pointer`, activar highlight, limpiar al salir | DONE |
+| TASK-142 | Tooltip flotante HTML: al hacer hover, mostrar `<div>` superpuesto al canvas con nombre de mesa, capacidad y estado; posicionado con `worldToScreen` + `getBoundingClientRect` | DONE |
+| TASK-143 | Drag-and-drop en modo edición: `pointerdown` + `pointermove` + `pointerup`; convertir coordenadas de pantalla a mundo con `screenToWorld`; despachar `CustomEvent("tablemove", { detail: { tableId, x, y } })` | DONE |
 
 ---
 
@@ -382,12 +382,12 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-144 | Crear `frontend/src/utils/characters.js` — gestor de personajes activos: `spawnCharacter(tableId)`, `removeCharacter(tableId)`, `updateCharacters(dt)` | PENDING |
-| TASK-145 | Crear sprite `tom-nook` en `iso-sprites.js`: figura isométrica estilizada (cabeza circular, cuerpo rectangular, colores cálidos) — dibujada con Canvas 2D primitivos | PENDING |
-| TASK-146 | Animación de caminar: el personaje sigue un path desde la puerta (`door` sprite) hasta la mesa asignada; velocidad constante, interpolación lineal por segmentos | PENDING |
-| TASK-147 | Animación de sentarse: al llegar a la mesa, el personaje hace una animación de "encogerse" (scale 1.0 → 0.7) y queda visible junto a la mesa durante la reserva | PENDING |
-| TASK-148 | Lógica de spawn: en cada ciclo de `update(statuses)`, para cada mesa con estado `reserved` cuya reserva empiece en ≤ 30 minutos, llamar `spawnCharacter(tableId)` si no existe ya; llamar `removeCharacter(tableId)` cuando el estado cambie a `completed` o `cancelled` | PENDING |
-| TASK-149 | Integrar `updateCharacters(deltaTime)` en el loop de render principal de `FloorPlan2_5D`; los personajes se renderizan en la capa 4 (entre mesas e indicadores) | PENDING |
+| TASK-144 | Crear `frontend/src/utils/characters.js` — gestor de personajes activos: `spawnCharacter(tableId)`, `removeCharacter(tableId)`, `updateCharacters(dt)` | DONE |
+| TASK-145 | Crear sprite `tom-nook` en `iso-sprites.js`: figura isométrica estilizada (cabeza circular, cuerpo rectangular, colores cálidos) — dibujada con Canvas 2D primitivos | DONE |
+| TASK-146 | Animación de caminar: el personaje sigue un path desde la puerta (`door` sprite) hasta la mesa asignada; velocidad constante, interpolación lineal por segmentos | DONE |
+| TASK-147 | Animación de sentarse: al llegar a la mesa, el personaje hace una animación de "encogerse" (scale 1.0 → 0.7) y queda visible junto a la mesa durante la reserva | DONE |
+| TASK-148 | Lógica de spawn: en cada ciclo de `update(statuses)`, para cada mesa con estado `reserved` cuya reserva empiece en ≤ 30 minutos, llamar `spawnCharacter(tableId)` si no existe ya; llamar `removeCharacter(tableId)` cuando el estado cambie a `completed` o `cancelled` | DONE |
+| TASK-149 | Integrar `updateCharacters(deltaTime)` en el loop de render principal de `FloorPlan2_5D`; los personajes se renderizan en la capa 4 (entre mesas e indicadores) | DONE |
 
 ---
 
@@ -395,10 +395,10 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-150 | Dirty-flag render: solo llamar a la función de redibujado completo cuando cambia el estado (`update`), entra/sale hover, o hay animaciones activas; usar `cancelAnimationFrame` cuando el canvas no está visible | PENDING |
-| TASK-151 | Sprite caching: pre-renderizar cada tipo de sprite en un `OffscreenCanvas` auxiliar y hacer `drawImage` en el canvas principal — evita recalcular paths en cada frame | PENDING |
-| TASK-152 | Fallback SVG: si `FloorPlan2_5D` falla al inicializarse (canvas no disponible), instanciar `FloorPlan` (SVG) automáticamente; registrar el error en consola | PENDING |
-| TASK-153 | Escribir tests para `FloorPlan2_5D`: mock de `CanvasRenderingContext2D`, verificar que `render()` llama a `drawSprite` para cada mesa, `update()` actualiza colores, `tableselect` se despacha al hacer click | PENDING |
+| TASK-150 | Dirty-flag render: solo llamar a la función de redibujado completo cuando cambia el estado (`update`), entra/sale hover, o hay animaciones activas; usar `cancelAnimationFrame` cuando el canvas no está visible | DONE |
+| TASK-151 | Sprite caching: pre-renderizar cada tipo de sprite en un `OffscreenCanvas` auxiliar y hacer `drawImage` en el canvas principal — evita recalcular paths en cada frame | DONE |
+| TASK-152 | Fallback SVG: si `FloorPlan2_5D` falla al inicializarse (canvas no disponible), instanciar `FloorPlan` (SVG) automáticamente; registrar el error en consola | DONE |
+| TASK-153 | Escribir tests para `FloorPlan2_5D`: mock de `CanvasRenderingContext2D`, verificar que `render()` llama a `drawSprite` para cada mesa, `update()` actualiza colores, `tableselect` se despacha al hacer click | DONE |
 
 ---
 
@@ -406,7 +406,7 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 
 | ID | Task | Status |
 |---|---|---|
-| TASK-154 | Crear `docs/FLOORPLAN_2_5D.md`: arquitectura del motor Canvas 2D, sistema de coordenadas isométricas, catálogo de sprites, sistema de personajes, paleta de colores, guía de extensión | PENDING |
-| TASK-155 | Actualizar `docs/SETUP.md`: eliminar referencias a WebGL/Three.js; añadir nota sobre Canvas 2D y el flag `USE_2_5D_FLOOR_PLAN` | PENDING |
-| TASK-156 | Actualizar `docs/ARCHITECTURE.md`: reflejar el cambio de Three.js a Canvas 2D en la sección de frontend | PENDING |
-| TASK-157 | Registrar la decisión en `DECISIONS.md`: motivo del abandono de Three.js, ventajas del motor Canvas 2D, trade-offs aceptados | PENDING |
+| TASK-154 | Crear `docs/FLOORPLAN_2_5D.md`: arquitectura del motor Canvas 2D, sistema de coordenadas isométricas, catálogo de sprites, sistema de personajes, paleta de colores, guía de extensión | DONE |
+| TASK-155 | Actualizar `docs/SETUP.md`: eliminar referencias a WebGL/Three.js; añadir nota sobre Canvas 2D y el flag `USE_2_5D_FLOOR_PLAN` | DONE |
+| TASK-156 | Actualizar `docs/ARCHITECTURE.md`: reflejar el cambio de Three.js a Canvas 2D en la sección de frontend | DONE |
+| TASK-157 | Registrar la decisión en `DECISIONS.md`: motivo del abandono de Three.js, ventajas del motor Canvas 2D, trade-offs aceptados | DONE |
