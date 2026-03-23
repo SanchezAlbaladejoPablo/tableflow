@@ -82,20 +82,25 @@ async function boot() {
         showLoginOverlay();
     });
 
-    if (restoreSession()) {
-        const user = getCurrentUser();
-        restaurantId = getCurrentRestaurantId() ?? restaurantId;
-        _showUserInHeader(user);
+    try {
+        if (restoreSession()) {
+            const user = getCurrentUser();
+            restaurantId = getCurrentRestaurantId() ?? restaurantId;
+            _showUserInHeader(user);
 
-        if (!restaurantId) {
-            // Authenticated but no restaurant yet — show onboarding
-            showOnboarding(user);
+            if (!restaurantId) {
+                // Authenticated but no restaurant yet — show onboarding
+                await showOnboarding(user);
+            } else {
+                await loadRestaurantSettings(restaurantId);
+                _applyBranding();
+                await init();
+            }
         } else {
-            await loadRestaurantSettings(restaurantId);
-            _applyBranding();
-            await init();
+            showLoginOverlay();
         }
-    } else {
+    } catch (err) {
+        console.error("[boot] Unexpected error:", err);
         showLoginOverlay();
     }
 
@@ -159,8 +164,12 @@ async function showOnboarding(user) {
     if (app) app.hidden = true;
 
     const rid = user.restaurant_id ?? restaurantId;
-    // Pre-load settings so step 2 of the wizard has a record with an id
-    if (rid) await loadRestaurantSettings(rid, true);
+
+    // Show a loading indicator while fetching settings (prevents blank overlay)
+    if (rid) {
+        overlay.innerHTML = `<div style="color:var(--color-text-2);font-size:14px;">Cargando…</div>`;
+        await loadRestaurantSettings(rid, true);
+    }
 
     const wizard = new OnboardingWizard(rid);
     wizard.render(overlay);
