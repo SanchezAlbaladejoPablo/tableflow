@@ -125,7 +125,7 @@ function showLoginOverlay() {
             // New account — go straight to onboarding
             overlay.hidden = false;
             if (app) app.hidden = true;
-            showOnboarding(user);
+            await showOnboarding(user);
         }, { once: true });
         overlay.addEventListener("showlogin", () => {
             showLoginOverlay();
@@ -150,7 +150,7 @@ function showLoginOverlay() {
     }, { once: true });
 }
 
-function showOnboarding(user) {
+async function showOnboarding(user) {
     const overlay = document.getElementById("login-overlay");
     const app     = document.getElementById("app");
 
@@ -158,13 +158,17 @@ function showOnboarding(user) {
     overlay.hidden = false;
     if (app) app.hidden = true;
 
-    const wizard = new OnboardingWizard(user.restaurant_id ?? restaurantId);
+    const rid = user.restaurant_id ?? restaurantId;
+    // Pre-load settings so step 2 of the wizard has a record with an id
+    if (rid) await loadRestaurantSettings(rid, true);
+
+    const wizard = new OnboardingWizard(rid);
     wizard.render(overlay);
 
     overlay.addEventListener("onboardingcomplete", async () => {
         overlay.hidden = true;
         if (app) app.hidden = false;
-        await loadRestaurantSettings(restaurantId);
+        await loadRestaurantSettings(rid, true);
         _applyBranding();
         await init();
     }, { once: true });
