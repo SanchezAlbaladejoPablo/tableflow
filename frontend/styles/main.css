@@ -642,6 +642,9 @@ button, input, select, textarea {
     z-index: 500;
     padding: var(--space-4);
 }
+.login-overlay[hidden] {
+    display: none;
+}
 
 .login-card {
     background: var(--color-surface);

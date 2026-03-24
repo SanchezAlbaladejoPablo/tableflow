@@ -410,3 +410,75 @@ Update status as you work: PENDING → IN_PROGRESS → DONE.
 | TASK-155 | Actualizar `docs/SETUP.md`: eliminar referencias a WebGL/Three.js; añadir nota sobre Canvas 2D y el flag `USE_2_5D_FLOOR_PLAN` | DONE |
 | TASK-156 | Actualizar `docs/ARCHITECTURE.md`: reflejar el cambio de Three.js a Canvas 2D en la sección de frontend | DONE |
 | TASK-157 | Registrar la decisión en `DECISIONS.md`: motivo del abandono de Three.js, ventajas del motor Canvas 2D, trade-offs aceptados | DONE |
+
+
+---
+
+## Phase 23 — Floor Plan 2.5D: Ambientación visual
+
+### Espaciado y escala
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-158 | **Más espaciado entre mesas** — `ISO_SCALE` 0.45→0.58, `VIRT_H` 520→620, `OFFSET_Y` 55→70. | DONE |
+
+### Modo nocturno
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-159 | **Paleta nocturna** — `iso-palette.js` reescrito con constantes DAY/NIGHT y `setNightMode(bool)` que muta PALETTE in-place. | DONE |
+| TASK-160 | **Fondo nocturno con estrellas** — degradado cielo + 45 estrellas con parpadeo sine-wave en `#drawBackground()`. | DONE |
+
+### Iluminación
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-161 | **Sprite de vela animada** — `drawCandle()` en `iso-sprites.js`: cilindro iso + pabilo + halo radial + llama bicolor animada con `Math.sin`. | DONE |
+| TASK-162 | **Halo de luz en suelo** — `#drawLightHalos()` con `globalCompositeOperation="lighter"`, gradiente radial elíptico por mesa. | DONE |
+| TASK-163 | **Lámparas de techo** — `drawCeilingLamp()` en iso-sprites + `#drawCeilingLamps()` en motor, posicionadas a sy-82 sobre cada mesa. | DONE |
+
+---
+
+## Phase 24 — Floor Plan: Rediseño Estética Animal Crossing + Sprites 3D
+
+> **Objetivo:** Reemplazar los sprites procedurales actuales (cajas iso geométricas) por una estética
+> completamente fiel a Animal Crossing: suelo de madera cálida, mesas con manteles con patrones,
+> sillas con cojines, plantas frondosas multicírculo, y personajes Tom Nook renderizados desde
+> el modelo 3D oficial mediante Blender MCP.
+>
+> **Stack:** Canvas 2D (sin cambio) + Blender 5.1 + blender-mcp (uvx) para renderizado de sprites.
+> **Prerequisito:** Blender instalado, addon blender-mcp activo con MCP server corriendo en puerto 9876.
+
+### Sprites Tom Nook con Blender MCP
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-164 | Descargar modelo 3D Tom Nook (Animal Crossing: New Horizons) desde The Models Resource — formato DAE+PNG textures. URL: https://models.spriters-resource.com/nintendo_switch/animalcrossingnewhorizons/asset/327341/ | PENDING |
+| TASK-165 | Via Blender MCP: crear escena Blender con cámara ortográfica isométrica (rot X=60°, Z=45°, tipo Ortho, escala ~3.5), fondo transparente (RGBA), resolución render 288×384 px (6 frames de 48×64 en sprite sheet 3×2) | PENDING |
+| TASK-166 | Via Blender MCP: importar modelo DAE de Tom Nook, aplicar texturas, centrar en escena, escalar a proporción chibi (cabeza ~40% del total) | PENDING |
+| TASK-167 | Via Blender MCP: configurar materiales Cycles/EEVEE con cel-shading (Toon BSDF o ShaderNodeBsdfToon) y contorno negro (Freestyle lines, grosor 1.5px) — estética AC | PENDING |
+| TASK-168 | Via Blender MCP: renderizar 4 frames de walk cycle rotando el modelo en Y (0°, 90°, 180°, 270° para simular pasos) + 1 frame idle + 1 frame seated (escala 0.75). Exportar cada render como PNG RGBA. | PENDING |
+| TASK-169 | Componer sprite sheet: combinar los 6 PNGs en una sola imagen 288×128 px (6 frames de 48×64 en fila) usando Canvas 2D o ImageMagick | PENDING |
+| TASK-170 | Mover sprite sheet a `frontend/src/assets/tom-nook-sprites.png`. Actualizar `drawCharacter()` en `iso-sprites.js` para usar `ctx.drawImage(spritesheet, srcX, 0, 48, 64, cx-24, cy-64, 48, 64)` con el frame correcto según estado y animFrame | PENDING |
+
+### Rediseño Estético Canvas 2D
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-171 | **Nueva paleta AC** — Reescribir `iso-palette.js` completo con paleta día AC (suelo miel cálido, mesas pasteles saturados, terracota, crema) y paleta noche AC (azul índigo profundo, luces ámbar cálidas). Nuevos campos: `chair_cushion`, `chair_back`, `plant_pot_rim`, `plant_green_1/2/3`, `wall_color`, `floor_tile_grain`, `table_apron` | PENDING |
+| TASK-172 | **Suelo de madera** — Reescribir `drawFloorTile()`: loseta iso con 2 líneas de separación de tablones (paralelas al eje diagonal, en t=1/3 y t=2/3 del tile) sobre color miel cálido. Borde de ranura entre losetas. | PENDING |
+| TASK-173 | **Mesa con mantel AC** — Reescribir `drawTableRect()` y `drawTableRound()`: mantel que sobresale 4px por los bordes, rayas o lunares según `tableNumber % 3`, highlight interior (rectángulo interior más claro), patas de madera visibles en caras laterales, outline stroke negro 1px | PENDING |
+| TASK-174 | **Sillas con cojín** — Reescribir `drawChairs()`: asiento base (madera oscura, isoBox pequeño), cojín encima (rounded highlight, color crema), respaldo visible en sillas norte/sur, patas como pequeños cuadrados en esquinas | PENDING |
+| TASK-175 | **Plantas multicírculo AC** — Reescribir `drawPlant()`: maceta trapezoidal terracota con borde superior más claro, 5–6 círculos de follaje superpuestos (2 traseros oscuros, 2 centrales main green, 1 highlight brillante top-left), 3 puntos blancos de brillo AC | PENDING |
+| TASK-176 | **Puerta AC** — Reescribir `drawDoor()`: felpudo de bienvenida delante, marco de arco redondeado, panel con tablones verticales, manija dorada, pequeño cristal con reflejo. Opcionalmente: letrero "OPEN" colgante | PENDING |
+| TASK-177 | **Indicadores de estado mejorados** — Reescribir `drawStatusIndicator()`: forma circular con gradiente en lugar de rombo plano, glow suave con `ctx.shadowBlur`, símbolo interior (hoja para available, estrella para reserved, exclamación para occupied) | PENDING |
+| TASK-178 | **Fondo día AC** — Añadir `#drawBackground()` para `nightMode=false`: paredes color crema cálido con zócalo inferior, ventanas con luz exterior, fondo general `#FFF8E8`. La sala debe sentirse como el interior de un restaurante AC. | PENDING |
+
+### Integración y pulido
+
+| ID | Task | Status |
+|---|---|---|
+| TASK-179 | Actualizar `floor-plan-2_5d.js`: activar `#drawBackground()` también en modo día, pasar `nightMode` al constructor, asegurar que velas y lámparas siguen funcionando con la nueva paleta | PENDING |
+| TASK-180 | Actualizar `index.html` `APP_CONFIG`: añadir `AC_SPRITES: true` flag para activar personajes basados en spritesheet vs. procedural | PENDING |
+| TASK-181 | Actualizar `docs/FLOORPLAN_2_5D.md` con la nueva estética, nuevas funciones de paleta, proceso de renderizado Blender MCP y formato del sprite sheet | PENDING |
+

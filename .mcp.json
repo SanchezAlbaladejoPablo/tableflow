@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ruflo": {
+      "command": "/home/pablo/.nvm/versions/node/v24.13.0/bin/npx",
+      "args": ["-y", "ruflo@latest", "mcp", "start"]
+    },
+    "blender": {
+      "command": "/home/pablo/.local/bin/uvx",
+      "args": ["blender-mcp"]
+    }
+  }
+}

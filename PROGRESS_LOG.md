@@ -613,3 +613,57 @@ All issues documented in `CLAUDE.md` under "Known Issues & Technical Debt".
   - `tables` topic → `_rebuildFloorPlan()` for instant layout updates.
 - Added SSE indicator dot in header: green (pulsing) when connected, grey when reconnecting.
 - `destroyRealtime()` called on logout to cleanly close the SSE connection.
+
+---
+
+## [2026-03-24] Phase 23 — Visual Ambiance (COMPLETE) + Phase 24 Planning
+
+**Tasks completed:** TASK-158 to TASK-163
+
+### Phase 23 — What was built
+
+- `ISO_SCALE` increased from 0.45 → 0.58; `VIRT_H` from 520 → 620 for better table spacing
+- **Night mode palette** (`iso-palette.js`): dark navy/slate blues vs warm pastels in day mode
+- **Starfield background**: 45 pre-generated stars with sine-wave twinkle animation
+- **Night sky gradient backdrop**: deep navy to midnight blue radial gradient
+- **Animated candles on tables**: wax cylinder + glow halo + two-layer flame with `Math.sin` flicker
+- **Ceiling lamps**: suspended cable + trapezoidal shade + warm radial glow aperture (6-layer painter's algorithm)
+- **Per-table light halos**: `globalCompositeOperation = 'lighter'` for additive glow blending
+- Seed data verified: 1 restaurant, 12 tables, 8 customers, 19 reservations across all statuses
+
+---
+
+## [2026-03-24] Phase 24 — Animal Crossing Aesthetic Setup
+
+**Tasks started:** TASK-164 (infrastructure)
+
+### Infrastructure established
+
+- **Blender 5.1.0** installed via `snap install blender --classic`
+- **blender-mcp addon** (`ahujasid/blender-mcp`) downloaded and activated in Blender GUI
+- **Blender MCP server** running on port 9876 (Start MCP Server in N panel)
+- **`uvx blender-mcp`** added to `~/.claude/mcp.json` alongside ruflo MCP server
+- **ruflo MCP server** configured: `npx -y ruflo@latest mcp start`
+- **ruflo context files** created at `/home/pablo/Descargas/Pocket/ruflo/`:
+  - `project.md`, `architecture.md`, `stack.md`, `domain.md`, `conventions.md`
+  - `decisions.md`, `context.md`, `tasks.md`, `roadmap.md`
+
+### Sprite rendering plan (Tom Nook)
+
+- Source: Tom Nook (New Horizons) 3D model — DAE + textures from The Models Resource
+- Blender scene: orthographic camera rot X=60°, Z=45°, ortho scale ~3.5
+- Cel-shading: Toon BSDF + Freestyle outlines
+- 6 frames: walk N/S/E/W (×4), idle (×1), seated (×1) at 48×64px RGBA PNG
+- Composed into 288×128px sprite sheet
+- Integration: `ctx.drawImage(spritesheet, srcX, srcY, 48, 64, cx, cy, 48, 64)` in `drawCharacter()`
+
+### Canvas 2D aesthetic rewrite plan (TASK-171 to TASK-181)
+
+- New AC day/night palette: warm honey wood, cream walls, pastel greens, terracotta
+- `drawFloorTile()`: wood plank horizontal grain lines
+- `drawTableRect()` / `drawTableRound()`: rounded tablecloths with checkerboard pattern
+- `drawChairs()`: cushioned seats with visible back-rests
+- `drawPlant()`: multi-circle foliage (3 overlapping ellipses), terracotta pot
+- `drawDoor()`: arch shape with welcome mat
+- `drawStatusIndicator()`: circular badge (green check / yellow clock / red X)
+- Day mode background: warm cream interior, no stars, wooden trim border

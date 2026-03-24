@@ -30,7 +30,7 @@
 /** @import { Table, TableAvailability, TableStatus } from '../types.js' */
 
 import { computeTableStatus }       from "../utils/table-assignment.js";
-import { getStatusColor }           from "../utils/iso-palette.js";
+import { getStatusColor, setNightMode } from "../utils/iso-palette.js";
 import {
     drawFloorTile,
     drawTableRect,
@@ -41,6 +41,8 @@ import {
     drawStatusIndicator,
     drawCharacter,
     drawTableLabel,
+    drawCandle,
+    drawCeilingLamp,
 } from "../utils/iso-sprites.js";
 import { CharacterManager }         from "../utils/characters.js";
 
@@ -50,15 +52,16 @@ import { CharacterManager }         from "../utils/characters.js";
 
 /** Resolución virtual del canvas (se escala con CSS). */
 const VIRT_W = 960;
-const VIRT_H = 520;
+const VIRT_H = 620;   // TASK-158: más alto para dar aire vertical
 
 /** Factor de escala: world units → isometric screen pixels.
- *  World space: 0-800 x, 0-500 y (herencia del SVG viewBox). */
-const ISO_SCALE = 0.45;
+ *  World space: 0-800 x, 0-500 y (herencia del SVG viewBox).
+ *  TASK-158: subido de 0.45 → 0.58 para mayor separación entre mesas. */
+const ISO_SCALE = 0.58;
 
 /** Offset para centrar el world space en la canvas virtual. */
 const OFFSET_X = VIRT_W * 0.48;
-const OFFSET_Y = 55;
+const OFFSET_Y = 70;   // TASK-158: ajustado para canvas más alto
 
 /** Tamaño del tile de suelo en world units. */
 const FLOOR_TILE = 80;
@@ -134,6 +137,12 @@ export class FloorPlan2_5D {
     // Sistema de personajes (Sub-fase E)
     #characters = new CharacterManager();
 
+    // Modo nocturno (TASK-159)
+    #nightMode = false;
+
+    // Posiciones de estrellas pre-generadas (TASK-160)
+    #stars = [];
+
     // Loop de animación
     #rafId     = null;
     #lastFrame = 0;
@@ -146,7 +155,22 @@ export class FloorPlan2_5D {
      */
     constructor(containerEl, options = {}) {
         this.#container = containerEl;
-        this.#options   = { draggable: false, editMode: false, ...options };
+        this.#options   = { draggable: false, editMode: false, nightMode: false, ...options };
+        this.#nightMode = this.#options.nightMode;
+
+        // Aplicar paleta nocturna antes de cualquier render (TASK-159)
+        setNightMode(this.#nightMode);
+
+        // Pre-generar posiciones de estrellas (TASK-160)
+        if (this.#nightMode) {
+            this.#stars = Array.from({ length: 45 }, () => ({
+                x:     Math.random() * VIRT_W,
+                y:     Math.random() * (VIRT_H * 0.28),
+                r:     Math.random() * 1.4 + 0.4,
+                phase: Math.random() * Math.PI * 2,
+                speed: Math.random() * 0.018 + 0.008,
+            }));
+        }
 
         this.#canvas = this.#buildCanvas();
         this.#ctx    = this.#canvas.getContext("2d");
@@ -347,9 +371,9 @@ export class FloorPlan2_5D {
 
             // Solo dibujar si hay algo que cambió
             const hasChars = this.#characters.getAll().length > 0;
-            if (this.#dirty || hasAnimations || hasChars) {
+            if (this.#dirty || hasAnimations || hasChars || this.#nightMode) {
                 this.#draw();
-                if (!hasAnimations && !hasChars) this.#dirty = false;
+                if (!hasAnimations && !hasChars && !this.#nightMode) this.#dirty = false;
             }
         };
         this.#rafId = requestAnimationFrame(loop);
@@ -361,12 +385,25 @@ export class FloorPlan2_5D {
 
     #draw() {
         const ctx = this.#ctx;
+
+        // Aplicar paleta correcta cada frame por si hay múltiples instancias (TASK-159)
+        setNightMode(this.#nightMode);
+
         ctx.clearRect(0, 0, VIRT_W, VIRT_H);
+
+        // Capa 0: fondo nocturno con estrellas (TASK-160) — solo en nightMode
+        if (this.#nightMode) this.#drawBackground(ctx);
 
         // Capa 1: suelo
         this.#drawFloor(ctx);
 
-        // Capa 2: decoraciones traseras (plantas, puerta)
+        // Capa 1.5: halos de luz en el suelo (TASK-162) — solo en nightMode
+        if (this.#nightMode) this.#drawLightHalos(ctx);
+
+        // Capa 2: lámparas de techo (TASK-163) — solo en nightMode
+        if (this.#nightMode) this.#drawCeilingLamps(ctx);
+
+        // Capa 2.5: decoraciones traseras (plantas, puerta)
         this.#drawDecorations(ctx);
 
         // Capa 3: mesas y sillas (ordenadas por profundidad: mayor wx+wy = más al frente)
@@ -377,6 +414,36 @@ export class FloorPlan2_5D {
 
         // Capa 5: indicadores de estado
         this.#drawIndicators(ctx);
+    }
+
+    // -------------------------------------------------------------------------
+    // Capa 0 — Fondo nocturno (TASK-160)
+    // -------------------------------------------------------------------------
+
+    #drawBackground(ctx) {
+        // Degradado cielo nocturno
+        const grad = ctx.createLinearGradient(0, 0, 0, VIRT_H * 0.55);
+        grad.addColorStop(0,   "#050A14");
+        grad.addColorStop(0.6, "#0A1628");
+        grad.addColorStop(1,   "#0F1E35");
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, VIRT_W, VIRT_H * 0.55);
+
+        // Estrellas con parpadeo suave
+        for (const star of this.#stars) {
+            const alpha = 0.5 + Math.sin(this.#pulseFrame * star.speed + star.phase) * 0.45;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 248, 230, ${alpha.toFixed(2)})`;
+            ctx.fill();
+        }
+
+        // Pared trasera del restaurante (banda oscura que separa cielo del suelo)
+        const wallGrad = ctx.createLinearGradient(0, VIRT_H * 0.35, 0, VIRT_H * 0.55);
+        wallGrad.addColorStop(0, "rgba(12, 22, 40, 0.0)");
+        wallGrad.addColorStop(1, "rgba(12, 22, 40, 0.7)");
+        ctx.fillStyle = wallGrad;
+        ctx.fillRect(0, VIRT_H * 0.35, VIRT_W, VIRT_H * 0.2);
     }
 
     // -------------------------------------------------------------------------
@@ -409,6 +476,46 @@ export class FloorPlan2_5D {
         for (const pos of DECORATION_POSITIONS) {
             const { sx, sy } = this.#worldToScreen(pos.x, pos.y);
             drawPlant(ctx, sx, sy);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Capa 1.5 — Halos de luz en el suelo (TASK-162)
+    // -------------------------------------------------------------------------
+
+    #drawLightHalos(ctx) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+
+        for (const table of this.#tables) {
+            const { sx, sy } = this.#worldToScreen(table.pos_x, table.pos_y);
+            const status = computeTableStatus(table.id, this.#availability);
+
+            const inner = status === "occupied" ? "rgba(255, 80, 40, 0.14)"
+                        : status === "reserved"  ? "rgba(255, 190, 60, 0.11)"
+                        :                          "rgba(255, 170, 50, 0.08)";
+
+            const haloGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, 80);
+            haloGrad.addColorStop(0, inner);
+            haloGrad.addColorStop(1, "rgba(0,0,0,0)");
+
+            ctx.beginPath();
+            ctx.ellipse(sx, sy, 80, 40, 0, 0, Math.PI * 2);
+            ctx.fillStyle = haloGrad;
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // Capa 2 — Lámparas de techo (TASK-163)
+    // -------------------------------------------------------------------------
+
+    #drawCeilingLamps(ctx) {
+        for (const table of this.#tables) {
+            const { sx, sy } = this.#worldToScreen(table.pos_x, table.pos_y);
+            drawCeilingLamp(ctx, sx, sy - 82, 0);
         }
     }
 
@@ -446,6 +553,11 @@ export class FloorPlan2_5D {
 
             // Etiqueta con número y capacidad
             drawTableLabel(ctx, 0, -4, table.number, table.capacity);
+
+            // Vela animada (TASK-161) — solo en nightMode, no en edición
+            if (this.#nightMode && !this.#options.editMode) {
+                drawCandle(ctx, 0, -2, this.#pulseFrame);
+            }
 
             // Botón de eliminar en modo edición
             if (this.#options.editMode) {

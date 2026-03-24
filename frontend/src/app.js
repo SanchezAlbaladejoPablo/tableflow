@@ -89,7 +89,6 @@ async function boot() {
             _showUserInHeader(user);
 
             if (!restaurantId) {
-                // Authenticated but no restaurant yet — show onboarding
                 await showOnboarding(user);
             } else {
                 await loadRestaurantSettings(restaurantId);
@@ -138,20 +137,25 @@ function showLoginOverlay() {
     }, { once: true });
 
     overlay.addEventListener("loginsuccess", async () => {
-        const user = getCurrentUser();
-        restaurantId = getCurrentRestaurantId() ?? restaurantId;
-        _showUserInHeader(user);
+        try {
+            const user = getCurrentUser();
+            restaurantId = getCurrentRestaurantId() ?? restaurantId;
+            _showUserInHeader(user);
 
-        if (!restaurantId) {
-            showOnboarding(user);
-            return;
+            if (!restaurantId) {
+                await showOnboarding(user);
+                return;
+            }
+
+            overlay.hidden = true;
+            if (app) app.hidden = false;
+            await loadRestaurantSettings(restaurantId);
+            _applyBranding();
+            await init();
+        } catch (err) {
+            console.error("[loginsuccess] Error during login flow:", err);
+            showLoginOverlay();
         }
-
-        overlay.hidden = true;
-        if (app) app.hidden = false;
-        await loadRestaurantSettings(restaurantId);
-        _applyBranding();
-        await init();
     }, { once: true });
 }
 
@@ -427,6 +431,7 @@ async function _rebuildFloorPlan() {
     floorPlan = new FloorPlanClass(container, {
         draggable: fpEditMode,
         editMode:  fpEditMode,
+        nightMode: window.APP_CONFIG?.NIGHT_MODE ?? false,
     });
     floorPlan.render(tables, []);
 

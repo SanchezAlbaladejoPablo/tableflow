@@ -1,6 +1,8 @@
 # PocketBase binary and data
 /pocketbase
 /pb_data/
+backend/pocketbase/data/
+backend/pocketbase/pb_data/
 
 # Environment variables
 .env

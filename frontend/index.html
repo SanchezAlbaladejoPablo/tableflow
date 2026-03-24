@@ -17,8 +17,25 @@
         window.APP_CONFIG = {
             POCKETBASE_URL: "http://localhost:8090",
             RESTAURANT_ID: "",   // Set from URL param or after auth
-            USE_2_5D_FLOOR_PLAN: false, // TASK-127: true → motor Canvas 2.5D, false → SVG
+            USE_2_5D_FLOOR_PLAN: true, // TASK-127: true → motor Canvas 2.5D, false → SVG
+            NIGHT_MODE: true,          // TASK-159: true → paleta nocturna + iluminación
         };
+
+        // Error diagnostics
+        function _showDiagError(msg) {
+            const el = document.createElement("pre");
+            el.style.cssText = "position:fixed;top:0;left:0;right:0;padding:16px;background:#fee2e2;color:#991b1b;font-size:12px;font-family:monospace;white-space:pre-wrap;z-index:99999;max-height:50vh;overflow:auto;border-bottom:2px solid #f87171";
+            el.textContent = msg;
+            document.body?.appendChild(el);
+        }
+        window.addEventListener("error", (e) => {
+            console.error("[APP ERROR]", e.message, e.error?.stack);
+            _showDiagError("ERROR: " + e.message + "\n" + (e.filename||"") + ":" + e.lineno + "\n" + (e.error?.stack ?? ""));
+        });
+        window.addEventListener("unhandledrejection", (e) => {
+            console.error("[UNHANDLED PROMISE]", e.reason);
+            _showDiagError("PROMISE REJECTED: " + (e.reason?.message ?? e.reason) + "\n" + (e.reason?.stack ?? ""));
+        });
     </script>
 </head>
 <body>
@@ -272,7 +289,7 @@
 <!-- ======================================================
      Application entry point
 ====================================================== -->
-<script type="module" src="src/app.js"></script>
+<script type="module" src="src/app.js?v=2"></script>
 
 </body>
 </html>

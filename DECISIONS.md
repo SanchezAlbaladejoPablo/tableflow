@@ -202,3 +202,45 @@ Format: `## [YYYY-MM-DD] Decision title`
 - Nueva Phase 22 con TASK-122 a TASK-157 (36 tareas) usando Canvas 2D.
 - No hay requisito de WebGL — el floorplan 2.5D funciona en cualquier navegador moderno.
 - El fallback al SVG 2D original sigue siendo posible si Canvas falla.
+
+---
+
+## [2026-03-24] Rewrite floor plan aesthetic to Animal Crossing style (Phase 24)
+
+**Context:** The 2.5D isometric engine (Phase 22) is functionally complete but the visual aesthetic uses simplified geometric shapes (flat colors, no texture). The product owner requested a warmer, more charming visual style inspired by Animal Crossing to improve demo appeal and staff UX.
+
+**Decision:** Rewrite all sprite functions in `iso-sprites.js` and the color palette in `iso-palette.js` to achieve an Animal Crossing aesthetic: warm honey wood floors, rounded tablecloths with patterns, cushioned chairs, multi-circle plants in terracotta pots. The Canvas 2D renderer stays — only the drawing code changes.
+
+**Rationale:**
+- Canvas 2D primitives (arcs, curves, gradients) can achieve the AC aesthetic without any image assets for furniture — only the character sprite requires an external PNG.
+- Staying on Canvas 2D (not switching to PixiJS or similar) preserves the zero-dependency frontend and the existing `floor-plan-2_5d.js` integration.
+- The public interface of `FloorPlan2_5D` does not change — `app.js` is untouched.
+- The PALETTE singleton pattern (ADR-011) is preserved; only the color values change.
+
+**Consequences:**
+- All sprite functions in `iso-sprites.js` will be rewritten in Phase 24 (TASK-171 to TASK-178).
+- A new AC-specific day palette is added to `iso-palette.js`; night mode palette is adjusted to match.
+- Day mode gets a warm interior background (cream walls, wooden trim) replacing the plain canvas fill.
+- The existing Canvas engine architecture, animation loop, and layer system remain unchanged.
+
+---
+
+## [2026-03-24] Use Blender MCP + 3D model for Tom Nook sprite sheet
+
+**Context:** The current `drawCharacter()` function draws a procedural "Tom Nook" character using Canvas 2D primitives (tan circles and rectangles). This is functional but not visually convincing for the AC aesthetic. No 2D walk-cycle sprite sheets for Tom Nook exist publicly (The Spriters Resource only has 3D model files in DAE/FBX format for New Horizons).
+
+**Decision:** Use the Blender MCP server (`uvx blender-mcp`, powered by `ahujasid/blender-mcp`) to import the official Tom Nook 3D model from The Models Resource, set up an isometric orthographic render with cel-shading (Toon BSDF + Freestyle outlines), and render 6 animation frames (walk×4, idle×1, seated×1) at 48×64px, composing them into a 288×128px sprite sheet PNG.
+
+**Rationale:**
+- The official New Horizons 3D model has correct proportions, textures, and the chibi AC aesthetic that hand-drawing would struggle to replicate.
+- Blender's Toon BSDF + Freestyle pipeline produces stylized cel-shading that matches the AC visual style perfectly.
+- Rendering once produces a static PNG — zero runtime cost; `ctx.drawImage()` is the fastest Canvas 2D operation.
+- The Blender MCP server automates scene setup, import, and render entirely from within Claude Code — no manual Blender workflow needed.
+- If the model render is unsatisfactory, the fallback is hand-drawn Canvas 2D primitives (existing code).
+
+**Consequences:**
+- Requires Blender 5.1.0 installed (`snap install blender --classic`) — one-time dev dependency, not a runtime dependency.
+- `blender-mcp` MCP server must be running (Blender open, N panel → Start MCP Server) when executing TASK-165 to TASK-169.
+- The sprite sheet PNG is committed to the repo as a static asset (small file, ~10KB).
+- `CharacterManager` in `characters.js` gains frame tracking state (animation index + timestamp).
+- `drawCharacter()` in `iso-sprites.js` switches from Canvas primitives to `ctx.drawImage()` with source rect.

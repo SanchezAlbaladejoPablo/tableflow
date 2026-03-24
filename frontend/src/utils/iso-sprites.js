@@ -367,3 +367,105 @@ export function drawTableLabel(ctx, cx, cy, number, capacity) {
 
     ctx.restore();
 }
+
+// ---------------------------------------------------------------------------
+// Vela sobre cada mesa (TASK-161)
+// ---------------------------------------------------------------------------
+
+/**
+ * Dibuja una vela con llama animada sobre el centro de una mesa.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} cx
+ * @param {number} cy
+ * @param {number} animFrame - frame counter para animar la llama
+ */
+export function drawCandle(ctx, cx, cy, animFrame) {
+    // Cuerpo de la vela (caja iso pequeña, color crema)
+    drawIsoBox(ctx, cx, cy - 18, 4, 2, 10, "#F5F0E8", "#D4CFC7", "#C4BFB7");
+
+    // Pabilo
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 28);
+    ctx.lineTo(cx, cy - 32);
+    ctx.strokeStyle = "#333";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // Halo de la llama (glow suave detrás)
+    const glowR = 10 + Math.sin(animFrame * 0.07) * 2;
+    const glow = ctx.createRadialGradient(cx, cy - 35, 0, cx, cy - 35, glowR);
+    glow.addColorStop(0, "rgba(255, 200, 60, 0.45)");
+    glow.addColorStop(1, "rgba(255, 140, 0, 0)");
+    ctx.beginPath();
+    ctx.arc(cx, cy - 35, glowR, 0, Math.PI * 2);
+    ctx.fillStyle = glow;
+    ctx.fill();
+
+    // Llama exterior (ámbar)
+    const fh = 7 + Math.sin(animFrame * 0.09) * 2.5;
+    const fw = 3.5 + Math.sin(animFrame * 0.13) * 0.8;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 35, fw, fh, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "#FFB300";
+    ctx.fill();
+
+    // Llama interior (amarillo claro)
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 34, fw * 0.5, fh * 0.6, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "#FFF9C4";
+    ctx.fill();
+}
+
+// ---------------------------------------------------------------------------
+// Lámpara de techo (TASK-163)
+// ---------------------------------------------------------------------------
+
+/**
+ * Dibuja una lámpara colgante de techo.
+ * cx, cy es la posición de la pantalla del punto inferior de la lámpara.
+ *
+ * @param {CanvasRenderingContext2D} ctx
+ * @param {number} cx
+ * @param {number} cy
+ * @param {number} cableTop - coordenada Y desde la que cuelga el cable (top del canvas)
+ */
+export function drawCeilingLamp(ctx, cx, cy, cableTop = 0) {
+    // Cable
+    ctx.beginPath();
+    ctx.moveTo(cx, cableTop);
+    ctx.lineTo(cx, cy - 14);
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Cuerpo de la pantalla (trapecio — más ancho abajo)
+    const tw = 6, bw = 18, h = 14;
+    ctx.beginPath();
+    ctx.moveTo(cx - tw, cy - h);
+    ctx.lineTo(cx + tw, cy - h);
+    ctx.lineTo(cx + bw, cy);
+    ctx.lineTo(cx - bw, cy);
+    ctx.closePath();
+    ctx.fillStyle = "#1A1208";
+    ctx.fill();
+    ctx.strokeStyle = "#2A1E10";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // Borde superior de la pantalla (anillo metálico)
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - h, tw, tw * 0.4, 0, 0, Math.PI * 2);
+    ctx.fillStyle = "#444";
+    ctx.fill();
+
+    // Apertura inferior (luz cálida saliendo hacia abajo)
+    const lampGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, bw);
+    lampGlow.addColorStop(0, "rgba(255, 230, 120, 0.9)");
+    lampGlow.addColorStop(0.5, "rgba(255, 180, 60, 0.3)");
+    lampGlow.addColorStop(1, "rgba(255, 140, 0, 0)");
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, bw, bw * 0.4, 0, 0, Math.PI * 2);
+    ctx.fillStyle = lampGlow;
+    ctx.fill();
+}

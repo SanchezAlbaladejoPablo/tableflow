@@ -1,12 +1,12 @@
 # PROJECT_STATUS.md — Current Development State
 
-_Last updated: 2026-03-22_
+_Last updated: 2026-03-24_
 
 ---
 
 ## Current Phase
 
-**v1.0 COMPLETE — SaaS v2.0 Architecture Defined, Implementation Starting**
+**v2.0 SaaS COMPLETE — Phase 24 (Animal Crossing Aesthetic) IN PROGRESS**
 
 | Phase | Status |
 |---|---|
@@ -32,6 +32,8 @@ _Last updated: 2026-03-22_
 | Phase 20 — Billing & Subscriptions (SaaS) | SKIP |
 | Phase 21 — Floorplan 3D / Three.js | DEPRECATED |
 | Phase 22 — Floorplan 2.5D Isometric Engine | COMPLETE |
+| Phase 23 — Visual Ambiance (night mode, candles, lamps) | COMPLETE |
+| Phase 24 — Animal Crossing Aesthetic Rewrite | IN PROGRESS |
 
 ---
 
@@ -96,35 +98,44 @@ _Last updated: 2026-03-22_
 
 ## What Is In Progress
 
-Nothing — SaaS architecture defined, ready to begin Phase 12 (Authentication).
+**Phase 24 — Animal Crossing Aesthetic Rewrite (TASK-164 to TASK-181)**
+
+Infrastructure setup complete:
+- [x] Blender 5.1.0 installed (`snap install blender --classic`)
+- [x] blender-mcp addon downloaded and activated in Blender
+- [x] `uvx blender-mcp` MCP server configured in `~/.claude/mcp.json`
+- [x] Blender open with MCP Server running on port 9876
+- [x] ruflo context files created in `/ruflo/` (9 files: project, architecture, stack, domain, conventions, decisions, context, tasks, roadmap)
+
+Pending:
+- [ ] TASK-164: Download Tom Nook 3D model (DAE) from The Models Resource
+- [ ] TASK-165 to TASK-169: Blender MCP scene setup + render sprite sheet
+- [ ] TASK-170 to TASK-181: Canvas 2D aesthetic rewrite (palette, sprites, floor, tables, chairs, plants)
 
 ---
 
 ## What Is Next
 
-**Phase 12 — Authentication & Access Control (TASK-043)**
+**Next immediate task: TASK-164**
 
-1. Add `users` collection to PocketBase with role field and restaurant_id relation
-2. Configure PocketBase collection rules for all collections
-3. Create login page in frontend
-4. Update API client to send JWT and handle 401
+Download Tom Nook (New Horizons) DAE model from The Models Resource and begin Blender MCP scene setup for isometric sprite rendering.
 
-**Recommended implementation order:**
-1. Phase 12 (Auth) — blocking dependency for all other SaaS phases
-2. Phase 13 (Onboarding) — needed before any restaurant can self-onboard
-3. Phase 15 (Realtime SSE) — quick win, high user value
-4. Phase 14 (Editable Floor Plan) — restaurant setup UX
-5. Phase 16 (Analytics) — retention driver
-6. Phase 17 (Booking Widget) — growth channel
-7. Phase 19 (Security Hardening) — should be done alongside Phase 12-13
-8. Phase 18 (AI Predictions) — differentiator
-9. Phase 20 (Billing) — monetization
+**Rendering pipeline:**
+1. Blender orthographic camera (rot X=60°, Z=45°), cel-shading (Toon BSDF + Freestyle)
+2. Render 6 frames: walk×4 (N/S/E/W), idle×1, seated×1 at 48×64px
+3. Compose into 288×128px sprite sheet PNG (transparent background)
+4. Integrate into `drawCharacter()` via `ctx.drawImage()`
+
+**Then Canvas 2D aesthetic rewrite:**
+1. New Animal Crossing day/night palette in `iso-palette.js`
+2. Wood plank floors, rounded tablecloths, cushioned chairs, multi-circle plants
+3. Day mode warm interior background (cream walls, wooden trim)
 
 ---
 
 ## Blockers
 
-None. Phase 12 can start immediately.
+None. Blender MCP is running. Tom Nook model download is the first step.
 
 ---
 
@@ -132,14 +143,16 @@ None. Phase 12 can start immediately.
 
 | Area | Status |
 |---|---|
-| Documentation | Complete + SaaS architecture added |
-| Architecture | Multi-tenant SaaS design defined |
-| Database schema | v1.0 complete; v2.0 additions planned |
-| Backend implementation | v1.0 migrations + hooks complete |
-| Frontend implementation | v1.0 full SPA complete |
+| Documentation | Complete — ruflo context files added (9 files) |
+| Architecture | Multi-tenant SaaS v2.0 complete |
+| Database schema | Complete with seed data |
+| Backend implementation | Migrations + hooks + custom routes complete |
+| Frontend implementation | Full SaaS SPA with 2.5D floor plan complete |
 | Automation workflows | 4 n8n workflows exported |
 | AI integration | Classifier workflow + client service |
-| Tests | 22 unit tests passing |
-| Seed data | Script complete |
-| Authentication | Not yet implemented |
-| Multi-tenancy | `restaurant_id` on all entities; collection rules not configured |
+| Tests | 60+ tests passing |
+| Seed data | 1 restaurant, 12 tables, 8 customers, 19 reservations |
+| Authentication | JWT login/logout/session restore complete |
+| Multi-tenancy | Row-level isolation via `restaurant_id`, collection rules configured |
+| Floor plan | 2.5D isometric Canvas 2D engine complete; AC aesthetic rewrite in progress |
+| Blender MCP | Configured and running — ready for sprite rendering |
